@@ -1,8 +1,8 @@
 fastapi==0.109.0
 uvicorn==0.27.0
 sqlalchemy==2.0.25
-pymysql==1.1.0
+pymysql==1.1.1
 httpx==0.26.0
-python-jose==3.3.0
+python-jose==3.4.0
 python-barcode==0.15.1
-Pillow==10.2.0
+Pillow==12.2.0
