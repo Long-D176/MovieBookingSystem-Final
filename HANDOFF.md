@@ -56,6 +56,8 @@ Important:
 - the EC2 instance cloned the GitHub repository into `~/moviebooking-final`
 - Nginx reverse proxy was configured on the EC2 instance for the app and Grafana domains
 - a source-built production-like stack was deployed on the EC2 instance
+- Cloudflare DNS records were updated so the app, `www`, and Grafana hosts point to the EC2 Elastic IP
+- Let's Encrypt HTTPS was enabled for the app and Grafana domains
 
 ## What Was Verified
 
@@ -79,12 +81,14 @@ Important:
 - Prometheus reports ready on the EC2 instance
 - Prometheus active targets show `prometheus`, `node-exporter`, and `cadvisor` as `up`
 - the running EC2 stack currently includes app services, MySQL, Prometheus, Grafana, node_exporter, and cAdvisor
+- public DNS resolves `tungtungtungtungsahur.site`, `www.tungtungtungtungsahur.site`, and `grafana.tungtungtungtungsahur.site` to `54.160.170.73`
+- HTTP requests now redirect to HTTPS for both the app and Grafana domains
+- public HTTPS works for `https://tungtungtungtungsahur.site` and `https://grafana.tungtungtungtungsahur.site`
+- the current Let's Encrypt certificate expires on `2026-07-21`
 
 ## What Is Still Missing
 
 - GitHub Actions secrets
-- domain DNS changes at Tenten
-- HTTPS certificates via Certbot
 - Terraform initialization/import/apply against the live AWS resources
 - optional Ansible
 - first image-based production deployment run from GitHub Actions
@@ -93,7 +97,6 @@ Important:
 ## Known Environment Constraints
 
 - AWS Learner Lab credentials are temporary and may need to be refreshed before Terraform or AWS CLI actions.
-- DNS changes at Tenten must be performed manually by the user.
 - The source-built fallback deployment is running now, but the graded CI/CD path still depends on GitHub Actions secrets and Docker Hub publishing.
 - cAdvisor had to be pinned to the official `gcr.io/cadvisor/cadvisor:v0.52.1` image because the `ghcr.io/google/cadvisor` tags did not resolve from the EC2 instance during deployment.
 
@@ -102,10 +105,10 @@ Important:
 If continuing the project with no further user clarification, do this next:
 
 1. add GitHub Actions secrets for Docker Hub, SSH, database, SMTP, JWT, and domains
-2. configure Tenten DNS records for `@` and `grafana`
-3. run `deploy/setup-certbot.sh` on the EC2 instance after DNS propagation
-4. initialize or import the current AWS resources into Terraform state
-5. run the first CI/CD deployment and verify the image-based path
+2. initialize or import the current AWS resources into Terraform state
+3. run the first CI/CD deployment and verify the image-based path
+4. capture evidence screenshots and logs for the demo/report
+5. optionally add Ansible if needed for score coverage
 
 ## Important Files
 

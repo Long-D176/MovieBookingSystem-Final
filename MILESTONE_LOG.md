@@ -93,3 +93,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed pushes to `origin/main` succeed; confirmed the EC2 instance cloned the GitHub repo; confirmed Nginx returns HTTP 200 for the app with the correct host header; confirmed Grafana health returns healthy JSON; confirmed Prometheus is ready; confirmed Prometheus active targets show `prometheus`, `node-exporter`, and `cadvisor` as `up`; confirmed the live EC2 stack is running app services, MySQL, Prometheus, Grafana, node_exporter, and cAdvisor
 - Remaining blockers: GitHub Actions secrets are not configured; DNS and HTTPS are not configured; Terraform has not been initialized or imported against the live AWS resources; the image-based CI/CD deployment path has not been tested yet; demo/report evidence has not been collected yet
 - Next recommended step: configure GitHub Actions secrets and Tenten DNS records, then request HTTPS certificates and run the first image-based deployment from GitHub Actions
+
+## [2026-04-22] Public DNS and HTTPS enabled for the production domains
+
+- Summary: Updated Cloudflare DNS so the root, `www`, and `grafana` hosts resolve to the production Elastic IP, then used Certbot with the Nginx plugin to obtain and install Let's Encrypt certificates for the app and Grafana domains.
+- Rubric areas affected: infrastructure, domain/HTTPS, deployment readiness, demo readiness
+- Files touched: `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed public DNS resolves the three hosts to `54.160.170.73`; confirmed HTTP redirects to HTTPS for both the app and Grafana domains; confirmed public HTTPS requests succeed for `https://tungtungtungtungsahur.site` and `https://grafana.tungtungtungtungsahur.site`; confirmed Let's Encrypt certificate installation succeeded and the certificate currently expires on `2026-07-21`
+- Remaining blockers: GitHub Actions secrets are not configured; Terraform has not been initialized or imported against the live AWS resources; the image-based CI/CD deployment path has not been tested; demo/report evidence has not been collected yet
+- Next recommended step: configure GitHub Actions secrets, then run the first end-to-end image-based deployment from GitHub Actions and capture evidence

@@ -248,6 +248,8 @@ The following improvements have already been applied in the repository:
 - Cloned the GitHub repository onto the EC2 instance under `~/moviebooking-final`
 - Configured host-level Nginx reverse proxy for the app and Grafana domains on the EC2 instance
 - Brought up a source-built production-like stack on the EC2 instance using `deploy/docker-compose.source-prod.yml`
+- Configured Cloudflare DNS records so the app, `www`, and Grafana hosts resolve to the EC2 Elastic IP
+- Enabled Let's Encrypt HTTPS for the app and Grafana domains using Certbot
 
 ### Files That Matter First
 
@@ -297,13 +299,16 @@ The following checks have already succeeded:
 - Prometheus on the EC2 instance reports ready on `127.0.0.1:9090/-/ready`
 - Prometheus active targets on the EC2 instance show `prometheus`, `node-exporter`, and `cadvisor` as `up`
 - the source-built production-like stack is running on the EC2 instance, including app services, MySQL, Prometheus, Grafana, node_exporter, and cAdvisor
+- public DNS now resolves `tungtungtungtungsahur.site`, `www.tungtungtungtungsahur.site`, and `grafana.tungtungtungtungsahur.site` to `54.160.170.73`
+- HTTP now redirects to HTTPS for both the app and Grafana domains
+- HTTPS requests succeed publicly for `https://tungtungtungtungsahur.site` and `https://grafana.tungtungtungtungsahur.site`
+- the Let's Encrypt certificate for the two domains is installed on the EC2 instance and currently expires on `2026-07-21`
 
 ### Known Blockers
 
 - GitHub Actions secrets are not configured yet
 - Terraform has been scaffolded but not initialized, imported, or applied against the live AWS resources
 - Optional Ansible automation is still missing
-- Domain DNS and HTTPS are not configured yet
 - The image-based CI/CD deployment path has not yet been exercised end-to-end
 - Demo evidence and report evidence files have not been collected yet
 
@@ -316,7 +321,7 @@ The following checks have already succeeded:
 - CI: **partial**
 - CD: **partial**
 - Security scanning: **partial**
-- Domain/HTTPS: **missing**
+- Domain/HTTPS: **implemented**
 - Monitoring: **implemented but not yet exposed over the public Grafana domain**
 - Demo readiness: **partial**
 - Report evidence: **partial**
@@ -326,11 +331,10 @@ The following checks have already succeeded:
 If the user asks to continue without changing strategy, do the following in order:
 
 1. configure GitHub Actions secrets for Docker Hub, SSH, app envs, and domains
-2. configure Tenten DNS for `@` and `grafana`
-3. run `deploy/setup-certbot.sh` on the EC2 instance after DNS propagation
-4. initialize or import the live AWS resources into `infra/terraform/`
-5. run the first full image-based CI/CD deployment to production
-6. capture evidence screenshots and logs for the report and demo
+2. initialize or import the live AWS resources into `infra/terraform/`
+3. run the first full image-based CI/CD deployment to production
+4. capture evidence screenshots and logs for the report and demo
+5. optionally add Ansible if the team wants stronger infrastructure automation coverage
 
 ### Resumption Checklist
 
@@ -454,11 +458,10 @@ Pause and explicitly call out tradeoffs if any task would:
 ## Recommended Immediate Roadmap
 
 1. configure GitHub Actions secrets
-2. configure domain DNS and then HTTPS
-3. import or apply Terraform for the current EC2, security group, and Elastic IP model
-4. run the image-based production deployment path from GitHub Actions
-5. capture Grafana and app screenshots plus CI/CD logs
-6. rehearse and record the mandatory demo
+2. import or apply Terraform for the current EC2, security group, and Elastic IP model
+3. run the image-based production deployment path from GitHub Actions
+4. capture Grafana and app screenshots plus CI/CD logs
+5. rehearse and record the mandatory demo
 
 ## Reference
 
