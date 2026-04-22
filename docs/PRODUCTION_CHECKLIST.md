@@ -46,6 +46,18 @@ bash deploy/setup-nginx.sh tungtungtungtungsahur.site grafana.tungtungtungtungsa
 bash deploy/setup-certbot.sh tungtungtungtungsahur.site grafana.tungtungtungtungsahur.site your-email@example.com
 ```
 
+## Manual Fallback Deployment
+
+If GitHub Actions secrets are not configured yet, the EC2 instance can still run a production-like build directly from the repository source:
+
+```bash
+cd ~/moviebooking-final
+cp database/init.sql deploy/database-init.sql
+cp deploy/server.env.example deploy/.env.production
+# edit deploy/.env.production with the real database, SMTP, JWT, and Grafana values
+docker compose -f deploy/docker-compose.source-prod.yml --env-file deploy/.env.production up -d --build
+```
+
 ## First Production Validation
 
 After DNS, CI/CD, and HTTPS are configured, verify:
