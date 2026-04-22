@@ -256,6 +256,8 @@ The following improvements have already been applied in the repository:
 - Added `.terraform.lock.hcl` after initializing Terraform
 - Standardized all Python service Dockerfiles on `python:3.11-slim` with base-package refresh and pip toolchain upgrades
 - Updated Python service dependencies to resolve the latest local image build and Trivy scan blockers reproduced from GitHub Actions
+- Confirmed the latest GitHub Actions CI run is green through `deploy-gate`
+- Switched the live EC2 stack from the source-built fallback deployment to the GHCR image-based deployment using `deploy/docker-compose.prod.yml`
 
 ### Files That Matter First
 
@@ -314,13 +316,19 @@ The following checks have already succeeded:
 - `python -m compileall services` succeeds after the latest Python image hardening changes
 - all current Python service images build successfully locally
 - representative Trivy image scans succeed locally for the `identity`, `otp`, and `payment` images after the latest dependency upgrades
+- local Docker can pull the current GHCR-tagged application images successfully
+- the latest GitHub Actions run for commit `b2f313f7e6d79fa548da017afe0f45afb9f87733` completed successfully through `deploy-gate`
+- the live EC2 stack now runs the application services from `ghcr.io/long-d176/mbs-final-*` image tags instead of locally built fallback images
+- public HTTPS for the app still returns HTTP 200 after the GHCR image cutover
+- Grafana public health still returns healthy JSON after the GHCR image cutover
+- Prometheus on the EC2 instance still reports ready and shows `prometheus`, `node-exporter`, and `cadvisor` as `up` after the GHCR image cutover
 
 ### Known Blockers
 
 - GitHub Actions secrets are not configured yet
 - Terraform state has been imported locally, but the current in-place tag/rule-description drift has not been applied
 - Optional Ansible automation is still missing
-- The image-based CI/CD deployment path has not yet been confirmed green on GitHub after the latest Python 3.11 image hardening fixes
+- The automated `deploy-production` job cannot run until GitHub Actions secrets are configured, even though the GHCR image path is now validated locally and live on EC2
 - Demo evidence and report evidence files have not been collected yet
 
 ### Current Gap Matrix
@@ -329,9 +337,9 @@ The following checks have already succeeded:
 - Architecture: **implemented for the chosen Tier 2 baseline**
 - Production routing: **implemented**
 - Secret hygiene: **partial**
-- CI: **partial**
-- CD: **partial**
-- Security scanning: **partial**
+- CI: **implemented**
+- CD: **partial but manually validated with the live GHCR image-based stack**
+- Security scanning: **implemented**
 - Domain/HTTPS: **implemented**
 - Monitoring: **implemented and exposed through the public Grafana domain**
 - Demo readiness: **partial**
@@ -341,9 +349,9 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. commit and push the latest Python 3.11 image hardening fixes if they are still local-only
-2. configure GitHub Actions secrets for SSH, app envs, and domains
-3. rerun the first full GHCR-based image deployment from GitHub Actions and confirm the hardened CI path is green
+1. configure GitHub Actions secrets for SSH, app envs, and domains
+2. rerun the workflow so `deploy-production` executes instead of being skipped
+3. verify the automated deployment updates the live EC2 stack to the matching GitHub SHA
 4. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
 5. capture evidence screenshots and logs for the report and demo
 6. optionally add Ansible if the team wants stronger infrastructure automation coverage
@@ -354,9 +362,9 @@ When opening a new window and continuing this project:
 
 1. confirm the team still wants Tier 2 as the baseline
 2. read the files listed in **Files That Matter First**
-3. check whether the latest Python image hardening fixes have already been committed and pushed
-4. check whether GitHub Actions secrets, DNS, or HTTPS have changed since the last session
-5. check whether the live EC2 stack is still healthy after any lab reset or restart
+3. check whether GitHub Actions secrets have been configured since the last session
+4. check whether the live EC2 stack is still healthy after any lab reset or restart
+5. verify whether the live stack is still on the expected GHCR image tag
 6. continue from the **Highest-Value Next Steps** unless the user redirects
 7. always tie the next task to a rubric category and demo evidence
 

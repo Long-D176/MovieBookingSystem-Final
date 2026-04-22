@@ -120,3 +120,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed `python -m compileall services` succeeds; built all current Python service images locally; confirmed representative Trivy image scans return clean results for the `identity`, `otp`, and `payment` images after the dependency and base-image updates
 - Remaining blockers: the GitHub Actions workflow still needs to be rerun on GitHub to confirm the same fixes clear the hosted CI environment; GitHub Actions secrets are still missing for the deployment half of the pipeline; optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
 - Next recommended step: commit and push the image hardening changes, then rerun the GitHub Actions workflow and confirm the GHCR-based CI path is green before wiring the final deployment secrets
+
+## [2026-04-23] GHCR image-based production stack verified and made live
+
+- Summary: Verified the hardened GHCR image set locally with Docker Desktop, confirmed the latest GitHub Actions CI run passes on GitHub, fast-forwarded the EC2 clone to the latest `main`, and switched the live production stack from the source-built fallback images to the GHCR-based `deploy/docker-compose.prod.yml` stack.
+- Rubric areas affected: CI, CD, deployment orchestration, monitoring, demo readiness
+- Files touched: `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed Docker Desktop daemon is available locally; confirmed `docker compose -f deploy/docker-compose.prod.yml --env-file <temp-env> config` succeeds locally; confirmed all current GHCR app images pull locally; confirmed GitHub Actions run `24791710334` completed successfully through `deploy-gate`; confirmed the EC2 stack now runs `ghcr.io/long-d176/mbs-final-*` image tags; confirmed public HTTPS app access still returns `200`; confirmed Grafana health remains healthy; confirmed Prometheus remains ready with `prometheus`, `node-exporter`, and `cadvisor` targets `up`
+- Remaining blockers: GitHub Actions secrets are still missing, so the hosted `deploy-production` job is skipped instead of executing; optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
+- Next recommended step: add the required GitHub Actions secrets and rerun the workflow so the automated `deploy-production` job executes end-to-end on top of the now-validated GHCR stack
