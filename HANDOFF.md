@@ -51,6 +51,11 @@ Important:
 - `.github/workflows/ci-cd.yml` was added
 - `deploy/` production deployment files were added
 - `monitoring/` provisioning files for Prometheus and Grafana were added
+- `infra/terraform/` was added
+- the repository was committed and pushed to `origin/main`
+- the EC2 instance cloned the GitHub repository into `~/moviebooking-final`
+- Nginx reverse proxy was configured on the EC2 instance for the app and Grafana domains
+- a source-built production-like stack was deployed on the EC2 instance
 
 ## What Was Verified
 
@@ -67,33 +72,40 @@ Important:
 - the remote `ubuntu` user can run Docker without `sudo`
 - `git remote -v` points to `https://github.com/Long-D176/MovieBookingSystem-Final.git`
 - `docker compose -f deploy/docker-compose.prod.yml --env-file deploy/server.env.example config` succeeds locally
+- `docker compose -f deploy/docker-compose.source-prod.yml --env-file deploy/server.env.example config` succeeds locally
+- pushes to `origin/main` succeed from this machine
+- the EC2 instance serves the app through Nginx with HTTP 200 when tested using the app domain host header
+- Grafana health returns healthy JSON on the EC2 instance
+- Prometheus reports ready on the EC2 instance
+- Prometheus active targets show `prometheus`, `node-exporter`, and `cadvisor` as `up`
+- the running EC2 stack currently includes app services, MySQL, Prometheus, Grafana, node_exporter, and cAdvisor
 
 ## What Is Still Missing
 
-- Terraform
-- optional Ansible
-- first commit and push to GitHub
 - GitHub Actions secrets
-- domain and HTTPS
-- first production deployment run
-- Prometheus/Grafana running in production
+- domain DNS changes at Tenten
+- HTTPS certificates via Certbot
+- Terraform initialization/import/apply against the live AWS resources
+- optional Ansible
+- first image-based production deployment run from GitHub Actions
 - demo evidence folder contents
 
 ## Known Environment Constraints
 
 - AWS Learner Lab credentials are temporary and may need to be refreshed before Terraform or AWS CLI actions.
 - DNS changes at Tenten must be performed manually by the user.
-- GitHub authentication for the first push has not been verified yet on this machine.
+- The source-built fallback deployment is running now, but the graded CI/CD path still depends on GitHub Actions secrets and Docker Hub publishing.
+- cAdvisor had to be pinned to the official `gcr.io/cadvisor/cadvisor:v0.52.1` image because the `ghcr.io/google/cadvisor` tags did not resolve from the EC2 instance during deployment.
 
 ## Resume Here
 
 If continuing the project with no further user clarification, do this next:
 
-1. make the first local commit and push this repo to GitHub
-2. add GitHub Actions secrets for Docker Hub, SSH, database, SMTP, JWT, and domains
-3. configure Tenten DNS records for `@` and `grafana`
-4. add host-level reverse proxy and HTTPS configuration on the EC2 instance
-5. run the first CI/CD deployment and verify Grafana and the main app
+1. add GitHub Actions secrets for Docker Hub, SSH, database, SMTP, JWT, and domains
+2. configure Tenten DNS records for `@` and `grafana`
+3. run `deploy/setup-certbot.sh` on the EC2 instance after DNS propagation
+4. initialize or import the current AWS resources into Terraform state
+5. run the first CI/CD deployment and verify the image-based path
 
 ## Important Files
 
@@ -103,7 +115,10 @@ If continuing the project with no further user clarification, do this next:
 - `MILESTONE_LOG.md`
 - `.github/workflows/ci-cd.yml`
 - `deploy/docker-compose.prod.yml`
+- `deploy/docker-compose.source-prod.yml`
 - `deploy/server.env.example`
+- `docs/PRODUCTION_CHECKLIST.md`
+- `infra/terraform/main.tf`
 - `monitoring/prometheus/prometheus.yml`
 - `docker-compose.yml`
 - `.env.example`

@@ -237,8 +237,17 @@ The following improvements have already been applied in the repository:
 - Added `.github/workflows/ci-cd.yml`
 - Added `deploy/bootstrap-server.sh`
 - Added `deploy/docker-compose.prod.yml`
+- Added `deploy/docker-compose.source-prod.yml`
 - Added `deploy/server.env.example`
+- Added `deploy/setup-nginx.sh`
+- Added `deploy/setup-certbot.sh`
+- Added `docs/PRODUCTION_CHECKLIST.md`
+- Added `infra/terraform/`
 - Added Prometheus and Grafana provisioning files under `monitoring/`
+- Pushed the local repository to the new GitHub repository
+- Cloned the GitHub repository onto the EC2 instance under `~/moviebooking-final`
+- Configured host-level Nginx reverse proxy for the app and Grafana domains on the EC2 instance
+- Brought up a source-built production-like stack on the EC2 instance using `deploy/docker-compose.source-prod.yml`
 
 ### Files That Matter First
 
@@ -251,14 +260,17 @@ If resuming work in a new session, inspect these files first:
 5. `FINAL_PROJECT_GUIDE.md`
 6. `.github/workflows/ci-cd.yml`
 7. `deploy/docker-compose.prod.yml`
-8. `deploy/server.env.example`
-9. `monitoring/prometheus/prometheus.yml`
-10. `docker-compose.yml`
-11. `.env.example`
-12. `frontend/default.conf`
-13. `frontend/app.js`
-14. `frontend/admin.html`
-15. `frontend/scanner.html`
+8. `deploy/docker-compose.source-prod.yml`
+9. `deploy/server.env.example`
+10. `docs/PRODUCTION_CHECKLIST.md`
+11. `infra/terraform/main.tf`
+12. `monitoring/prometheus/prometheus.yml`
+13. `docker-compose.yml`
+14. `.env.example`
+15. `frontend/default.conf`
+16. `frontend/app.js`
+17. `frontend/admin.html`
+18. `frontend/scanner.html`
 
 ### Verified So Far
 
@@ -277,15 +289,22 @@ The following checks have already succeeded:
 - the local folder is now a Git repository on branch `main`
 - the local `origin` remote points to `https://github.com/Long-D176/MovieBookingSystem-Final.git`
 - `docker compose -f deploy/docker-compose.prod.yml --env-file deploy/server.env.example config` succeeds
+- `docker compose -f deploy/docker-compose.source-prod.yml --env-file deploy/server.env.example config` succeeds
+- the first local commit and follow-up commits were pushed successfully to `origin/main`
+- the EC2 instance cloned the GitHub repository successfully
+- Nginx on the EC2 instance returns HTTP 200 for the app domain when tested with the correct `Host` header
+- Grafana health on the EC2 instance returns healthy JSON on `127.0.0.1:3001/api/health`
+- Prometheus on the EC2 instance reports ready on `127.0.0.1:9090/-/ready`
+- Prometheus active targets on the EC2 instance show `prometheus`, `node-exporter`, and `cadvisor` as `up`
+- the source-built production-like stack is running on the EC2 instance, including app services, MySQL, Prometheus, Grafana, node_exporter, and cAdvisor
 
 ### Known Blockers
 
-- The repository has not yet been committed and pushed to GitHub
 - GitHub Actions secrets are not configured yet
-- No Terraform or Ansible infrastructure files yet
+- Terraform has been scaffolded but not initialized, imported, or applied against the live AWS resources
+- Optional Ansible automation is still missing
 - Domain DNS and HTTPS are not configured yet
-- The production stack has not yet been deployed on the EC2 instance
-- The monitoring stack exists only as configuration and has not been run in production yet
+- The image-based CI/CD deployment path has not yet been exercised end-to-end
 - Demo evidence and report evidence files have not been collected yet
 
 ### Current Gap Matrix
@@ -298,7 +317,7 @@ The following checks have already succeeded:
 - CD: **partial**
 - Security scanning: **partial**
 - Domain/HTTPS: **missing**
-- Monitoring: **partial**
+- Monitoring: **implemented but not yet exposed over the public Grafana domain**
 - Demo readiness: **partial**
 - Report evidence: **partial**
 
@@ -306,12 +325,12 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. make the first Git commit and push the repository to GitHub
-2. configure GitHub Actions secrets for Docker Hub, SSH, app envs, and domains
-3. create `infra/terraform/` for the EC2 instance, security group, and Elastic IP
-4. add host-level reverse proxy and HTTPS automation for the app and Grafana domains
-5. run the first full CI/CD deployment to production
-6. verify Prometheus and Grafana on the live EC2 instance
+1. configure GitHub Actions secrets for Docker Hub, SSH, app envs, and domains
+2. configure Tenten DNS for `@` and `grafana`
+3. run `deploy/setup-certbot.sh` on the EC2 instance after DNS propagation
+4. initialize or import the live AWS resources into `infra/terraform/`
+5. run the first full image-based CI/CD deployment to production
+6. capture evidence screenshots and logs for the report and demo
 
 ### Resumption Checklist
 
@@ -319,8 +338,8 @@ When opening a new window and continuing this project:
 
 1. confirm the team still wants Tier 2 as the baseline
 2. read the files listed in **Files That Matter First**
-3. check whether the repo has been committed and pushed since the last session
-4. check whether GitHub Actions secrets, DNS, or HTTPS have been configured
+3. check whether GitHub Actions secrets, DNS, or HTTPS have been configured since the last session
+4. check whether the live EC2 stack is still healthy after any lab reset or restart
 5. continue from the **Highest-Value Next Steps** unless the user redirects
 6. always tie the next task to a rubric category and demo evidence
 
@@ -434,13 +453,12 @@ Pause and explicitly call out tradeoffs if any task would:
 
 ## Recommended Immediate Roadmap
 
-1. commit and push this folder to the new GitHub repo
-2. configure GitHub Actions secrets
-3. add Terraform for the current EC2, security group, and Elastic IP model
-4. configure domain DNS and HTTPS
-5. deploy the production Compose stack
-6. verify Prometheus and Grafana
-7. rehearse and record the mandatory demo
+1. configure GitHub Actions secrets
+2. configure domain DNS and then HTTPS
+3. import or apply Terraform for the current EC2, security group, and Elastic IP model
+4. run the image-based production deployment path from GitHub Actions
+5. capture Grafana and app screenshots plus CI/CD logs
+6. rehearse and record the mandatory demo
 
 ## Reference
 
