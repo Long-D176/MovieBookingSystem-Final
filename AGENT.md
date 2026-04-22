@@ -199,7 +199,8 @@ This section is for fast handoff when a future agent opens a new window without 
 - New GitHub repository: `https://github.com/Long-D176/MovieBookingSystem-Final`
 - Public domain: `tungtungtungtungsahur.site`
 - DNS provider/registrar control: available through Tenten
-- Docker Hub namespace: `g1enz`
+- Preferred CI/CD registry: `ghcr.io/long-d176`
+- Docker Hub namespace `g1enz` remains available only as an optional fallback
 - Image naming strategy: use a **new final-project prefix**, not the older midterm image names
 - EC2 strategy: create a **new instance** and a **new key pair**
 
@@ -250,6 +251,9 @@ The following improvements have already been applied in the repository:
 - Brought up a source-built production-like stack on the EC2 instance using `deploy/docker-compose.source-prod.yml`
 - Configured Cloudflare DNS records so the app, `www`, and Grafana hosts resolve to the EC2 Elastic IP
 - Enabled Let's Encrypt HTTPS for the app and Grafana domains using Certbot
+- Switched the image-based CI/CD path from Docker Hub to GHCR using GitHub Actions `GITHUB_TOKEN`
+- Imported the live EC2 instance, security group, and Elastic IP into local Terraform state
+- Added `.terraform.lock.hcl` after initializing Terraform
 
 ### Files That Matter First
 
@@ -303,11 +307,13 @@ The following checks have already succeeded:
 - HTTP now redirects to HTTPS for both the app and Grafana domains
 - HTTPS requests succeed publicly for `https://tungtungtungtungsahur.site` and `https://grafana.tungtungtungtungsahur.site`
 - the Let's Encrypt certificate for the two domains is installed on the EC2 instance and currently expires on `2026-07-21`
+- local Terraform import succeeded for `aws_instance.app`, `aws_security_group.moviebooking_final`, and `aws_eip.app`
+- the current `terraform plan` no longer wants to replace the live EC2 instance or security group; remaining changes are in-place only
 
 ### Known Blockers
 
 - GitHub Actions secrets are not configured yet
-- Terraform has been scaffolded but not initialized, imported, or applied against the live AWS resources
+- Terraform state has been imported locally, but the current in-place tag/rule-description drift has not been applied
 - Optional Ansible automation is still missing
 - The image-based CI/CD deployment path has not yet been exercised end-to-end
 - Demo evidence and report evidence files have not been collected yet
@@ -330,9 +336,9 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. configure GitHub Actions secrets for Docker Hub, SSH, app envs, and domains
-2. initialize or import the live AWS resources into `infra/terraform/`
-3. run the first full image-based CI/CD deployment to production
+1. configure GitHub Actions secrets for SSH, app envs, and domains
+2. run the first full GHCR-based image deployment from GitHub Actions
+3. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
 4. capture evidence screenshots and logs for the report and demo
 5. optionally add Ansible if the team wants stronger infrastructure automation coverage
 
@@ -458,8 +464,8 @@ Pause and explicitly call out tradeoffs if any task would:
 ## Recommended Immediate Roadmap
 
 1. configure GitHub Actions secrets
-2. import or apply Terraform for the current EC2, security group, and Elastic IP model
-3. run the image-based production deployment path from GitHub Actions
+2. run the GHCR-based production deployment path from GitHub Actions
+3. optionally apply the remaining in-place Terraform drift
 4. capture Grafana and app screenshots plus CI/CD logs
 5. rehearse and record the mandatory demo
 

@@ -102,3 +102,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed public DNS resolves the three hosts to `54.160.170.73`; confirmed HTTP redirects to HTTPS for both the app and Grafana domains; confirmed public HTTPS requests succeed for `https://tungtungtungtungsahur.site` and `https://grafana.tungtungtungtungsahur.site`; confirmed Let's Encrypt certificate installation succeeded and the certificate currently expires on `2026-07-21`
 - Remaining blockers: GitHub Actions secrets are not configured; Terraform has not been initialized or imported against the live AWS resources; the image-based CI/CD deployment path has not been tested; demo/report evidence has not been collected yet
 - Next recommended step: configure GitHub Actions secrets, then run the first end-to-end image-based deployment from GitHub Actions and capture evidence
+
+## [2026-04-22] Terraform import completed and CI/CD registry moved to GHCR
+
+- Summary: Installed Terraform locally, initialized the Terraform working directory, imported the live EC2 instance, security group, and Elastic IP into local Terraform state, and updated the image-based CI/CD path to use GHCR through GitHub Actions `GITHUB_TOKEN` instead of a separate Docker Hub token.
+- Rubric areas affected: infrastructure reproducibility, CI/CD, deployment readiness
+- Files touched: `.github/workflows/ci-cd.yml`, `deploy/docker-compose.prod.yml`, `deploy/server.env.example`, `infra/terraform/variables.tf`, `infra/terraform/main.tf`, `infra/terraform/terraform.tfvars.example`, `infra/terraform/README.md`, `infra/terraform/.terraform.lock.hcl`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed Terraform import success for `aws_instance.app`, `aws_security_group.moviebooking_final`, and `aws_eip.app`; confirmed the updated production compose config resolves GHCR image paths correctly; confirmed the current `terraform plan` only proposes in-place updates and no longer wants to replace the live EC2 instance or security group
+- Remaining blockers: GitHub Actions secrets are not configured; the GHCR-based CI/CD deployment path has not been executed yet; optional in-place Terraform drift has not been applied; demo/report evidence has not been collected yet
+- Next recommended step: add GitHub Actions secrets and run the first GHCR-based CI/CD deployment, then capture screenshots/logs for evidence

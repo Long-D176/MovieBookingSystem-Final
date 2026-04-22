@@ -4,8 +4,6 @@
 
 Add these repository secrets in GitHub before enabling the deployment workflow:
 
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
 - `EC2_HOST`
 - `EC2_USER`
 - `EC2_SSH_KEY`
@@ -25,6 +23,7 @@ Notes:
 - `EC2_HOST` should be the Elastic IP `54.160.170.73`
 - `EC2_USER` should be `ubuntu`
 - `EC2_SSH_KEY` should contain the full contents of the PEM file, including the `BEGIN` and `END` lines
+- container publishing now targets GHCR, so the workflow uses the built-in `GITHUB_TOKEN` instead of a separate Docker Hub token
 - keep all secret values out of tracked files
 
 ## Tenten DNS

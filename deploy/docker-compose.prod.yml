@@ -18,7 +18,7 @@ services:
       start_period: 30s
 
   catalog_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-catalog:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-catalog:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -27,7 +27,7 @@ services:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?charset=utf8mb4
 
   otp_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-otp:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-otp:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -38,7 +38,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
 
   identity_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-identity:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-identity:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -50,7 +50,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   booking_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-booking:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-booking:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -62,7 +62,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   payment_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-payment:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-payment:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -75,7 +75,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
 
   redemption_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-redemption:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-redemption:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -84,7 +84,7 @@ services:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?charset=utf8mb4
 
   scheduler_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-scheduler:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-scheduler:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -93,7 +93,7 @@ services:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?charset=utf8mb4
 
   management_service:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-management:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-management:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       db:
@@ -103,7 +103,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   frontend:
-    image: ${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-frontend:${APP_IMAGE_TAG}
+    image: ${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-frontend:${APP_IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       catalog_service:

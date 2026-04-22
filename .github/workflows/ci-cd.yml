@@ -10,10 +10,11 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 env:
   PYTHON_VERSION: "3.11"
-  IMAGE_NAMESPACE: g1enz
+  REGISTRY: ghcr.io
   IMAGE_PREFIX: mbs-final
 
 jobs:
@@ -91,15 +92,19 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v6
 
+      - name: Prepare image namespace
+        run: echo "IMAGE_NAMESPACE=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image locally for scanning
         uses: docker/build-push-action@v7
@@ -120,7 +125,7 @@ jobs:
           exit-code: "1"
           format: table
 
-      - name: Push versioned image to Docker Hub
+      - name: Push versioned image to GHCR
         if: github.event_name == 'push'
         uses: docker/build-push-action@v7
         with:
@@ -134,7 +139,22 @@ jobs:
   deploy-production:
     runs-on: ubuntu-24.04
     needs: build-and-publish
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      secrets.EC2_HOST != '' &&
+      secrets.EC2_USER != '' &&
+      secrets.EC2_SSH_KEY != '' &&
+      secrets.MYSQL_ROOT_PASSWORD != '' &&
+      secrets.MYSQL_DATABASE != '' &&
+      secrets.MYSQL_USER != '' &&
+      secrets.MYSQL_PASSWORD != '' &&
+      secrets.SMTP_EMAIL != '' &&
+      secrets.SMTP_PASSWORD != '' &&
+      secrets.JWT_SECRET != '' &&
+      secrets.APP_DOMAIN != '' &&
+      secrets.GRAFANA_DOMAIN != '' &&
+      secrets.GRAFANA_ADMIN_PASSWORD != ''
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
@@ -145,6 +165,9 @@ jobs:
           printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Prepare image namespace
+        run: echo "IMAGE_NAMESPACE=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
 
       - name: Prepare remote deploy directory
         env:
@@ -157,7 +180,6 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
@@ -171,7 +193,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: |
           cat > .env.production <<EOF
-          DOCKERHUB_NAMESPACE=${DOCKERHUB_USERNAME}
+          IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
           IMAGE_PREFIX=${IMAGE_PREFIX}
           APP_IMAGE_TAG=${GITHUB_SHA}
           MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}

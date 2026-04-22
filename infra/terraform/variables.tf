@@ -22,6 +22,12 @@ variable "instance_type" {
   default     = "t3.large"
 }
 
+variable "ami_id" {
+  description = "AMI ID for the production host. Keep this pinned to avoid replacing the live instance unexpectedly."
+  type        = string
+  default     = "ami-0ec10929233384c7f"
+}
+
 variable "key_pair_name" {
   description = "Existing EC2 key pair name used for SSH access."
   type        = string
@@ -46,6 +52,18 @@ variable "root_volume_size" {
   description = "Root EBS volume size in GiB."
   type        = number
   default     = 30
+}
+
+variable "security_group_description" {
+  description = "Security group description. Keep the current imported description unless you explicitly want Terraform to replace it."
+  type        = string
+  default     = "launch-wizard-7 created 2026-04-22T14:07:54.819Z"
+}
+
+variable "cpu_credits" {
+  description = "Burst credit mode for T-family instances."
+  type        = string
+  default     = "unlimited"
 }
 
 variable "app_domain" {
