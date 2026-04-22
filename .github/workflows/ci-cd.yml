@@ -1,0 +1,218 @@
+name: CI-CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  IMAGE_NAMESPACE: g1enz
+  IMAGE_PREFIX: mbs-final
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install validation tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff
+
+      - name: Run static analysis
+        run: ruff check services --select E9,F63,F7,F82
+
+      - name: Verify Python syntax
+        run: python -m compileall services
+
+      - name: Validate Docker Compose
+        run: docker compose config
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+  build-and-publish:
+    runs-on: ubuntu-24.04
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service_name: frontend
+            image_name: frontend
+            context: ./frontend
+          - service_name: catalog_service
+            image_name: catalog
+            context: ./services/catalog
+          - service_name: otp_service
+            image_name: otp
+            context: ./services/otp
+          - service_name: identity_service
+            image_name: identity
+            context: ./services/identity
+          - service_name: booking_service
+            image_name: booking
+            context: ./services/booking
+          - service_name: payment_service
+            image_name: payment
+            context: ./services/payment
+          - service_name: redemption_service
+            image_name: redemption
+            context: ./services/redemption
+          - service_name: scheduler_service
+            image_name: scheduler
+            context: ./services/scheduler
+          - service_name: management_service
+            image_name: management
+            context: ./services/management
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image locally for scanning
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          load: true
+          tags: local/${{ matrix.image_name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image_name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image_name }}
+
+      - name: Scan built image with Trivy
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: local/${{ matrix.image_name }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      - name: Push versioned image to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_PREFIX }}-${{ matrix.image_name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image_name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image_name }}
+
+  deploy-production:
+    runs-on: ubuntu-24.04
+    needs: build-and-publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Prepare SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Prepare remote deploy directory
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "mkdir -p ~/moviebooking-final/deploy ~/moviebooking-final/monitoring"
+
+      - name: Render production env file
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+          GRAFANA_DOMAIN: ${{ secrets.GRAFANA_DOMAIN }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          cat > .env.production <<EOF
+          DOCKERHUB_NAMESPACE=${DOCKERHUB_USERNAME}
+          IMAGE_PREFIX=${IMAGE_PREFIX}
+          APP_IMAGE_TAG=${GITHUB_SHA}
+          MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          MYSQL_DATABASE=${MYSQL_DATABASE}
+          MYSQL_USER=${MYSQL_USER}
+          MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          SMTP_EMAIL=${SMTP_EMAIL}
+          SMTP_PASSWORD=${SMTP_PASSWORD}
+          JWT_SECRET=${JWT_SECRET}
+          APP_DOMAIN=${APP_DOMAIN}
+          GRAFANA_DOMAIN=${GRAFANA_DOMAIN}
+          GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+          EOF
+
+      - name: Upload deployment assets
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          scp -i ~/.ssh/deploy_key -r deploy/* "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/"
+          scp -i ~/.ssh/deploy_key -r monitoring "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/"
+          scp -i ~/.ssh/deploy_key database/init.sql "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/database-init.sql"
+          scp -i ~/.ssh/deploy_key .env.production "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/.env.production"
+
+      - name: Deploy production stack
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "
+            cd ~/moviebooking-final &&
+            docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production pull &&
+            docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production up -d --remove-orphans
+          "
+
+      - name: Verify running services
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "
+            cd ~/moviebooking-final &&
+            docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production ps
+          "

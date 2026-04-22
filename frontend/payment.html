@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận Thanh toán</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .invoice-box {
+            background: var(--bg-surface);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            border: 1px solid #333;
+            max-width: 600px;
+            margin: 50px auto;
+            position: relative;
+        }
+        .invoice-header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .label { 
+            color: var(--text-sub); 
+            min-width: 120px;
+        }
+        .value { 
+            font-weight: bold; 
+            color: white; 
+            text-align: right;
+            max-width: 65%;
+            word-wrap: break-word;
+            overflow-wrap: break-word; 
+            word-break: break-word;    
+            line-height: 1.4; 
+        }
+        .total-row {
+            border-top: 2px solid #444;
+            padding-top: 20px;
+            margin-top: 20px;
+            font-size: 20px;
+            color: var(--accent);
+            align-items: center; 
+        }
+        #inv-total {
+            font-size: 24px;
+            color: #2ED573; 
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn-back {
+            background: transparent;
+            border: 1px solid #777;
+            color: #ccc;
+            flex: 1;
+        }
+        .btn-back:hover {
+            background: #333;
+            color: white;
+            border-color: white;
+        }
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            flex: 1;
+        }
+        .btn-cancel:hover {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-confirm {
+            background: var(--success);
+            color: white;
+            flex: 2;
+        }
+        .btn-confirm:hover {
+            background: #26b360;
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">CINE<span style="color:white">WORLD</span>.</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="invoice-box">
+            <div class="invoice-header">
+                <h2 style="margin:0; color:white;">XÁC NHẬN ĐƠN HÀNG</h2>
+                <p style="color:var(--text-sub); margin:5px 0;">Vui lòng kiểm tra thông tin trước khi thanh toán</p>
+            </div>
+
+            <div class="invoice-body">
+                <div class="invoice-row">
+                    <span class="label">Mã đơn hàng:</span>
+                    <span class="value" id="inv-id">#...</span>
+                </div>
+                <div class="invoice-row">
+                    <span class="label">Phim:</span>
+                    <span class="value" id="inv-movie">...</span>
+                </div>
+                <div class="invoice-row">
+                    <span class="label">Ghế đã chọn:</span>
+                    <span class="value" id="inv-seats">...</span>
+                </div>
+                
+                <div class="invoice-row" id="row-snacks" style="display: none;">
+                    <span class="label">Combo Bắp Nước:</span>
+                    <span class="value" id="inv-snacks" style="color: var(--accent);"></span>
+                </div>
+                
+                <div class="invoice-row total-row">
+                    <span class="label" style="color:white">TỔNG CỘNG:</span>
+                    <span class="value" id="inv-total">0 VND</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-back" onclick="window.history.back()">QUAY LẠI</button>
+                <button class="btn btn-cancel" onclick="cancelOrder()">HỦY ĐƠN</button>
+                <button class="btn btn-confirm" onclick="processPaymentFinal()">THANH TOÁN NGAY</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script logic -->
+    <script src="app.js"></script>
+    <script>
+        if (typeof loadPaymentPage === "function") {
+            loadPaymentPage();
+        }
+
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const snacks = params.get("snacks");
+            
+            if (snacks && snacks.trim() !== "") {
+                const snackRow = document.getElementById("row-snacks");
+                const snackValue = document.getElementById("inv-snacks");
+                
+                if (snackRow && snackValue) {
+                    snackValue.innerText = decodeURIComponent(snacks);
+                    snackRow.style.display = "flex";
+                }
+            }
+        })();
+        
+    </script>
+</body>
+</html>
