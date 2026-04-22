@@ -24,6 +24,7 @@ Notes:
 - `EC2_USER` should be `ubuntu`
 - `EC2_SSH_KEY` should contain the full contents of the PEM file, including the `BEGIN` and `END` lines
 - container publishing now targets GHCR, so the workflow uses the built-in `GITHUB_TOKEN` instead of a separate Docker Hub token
+- the workflow now gates deployment automatically, so validate/build/publish can run before secrets exist and the deploy job will only run after all required secrets are configured
 - keep all secret values out of tracked files
 
 ## Tenten DNS

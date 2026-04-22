@@ -136,25 +136,54 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.image_name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image_name }}
 
-  deploy-production:
+  deploy-gate:
     runs-on: ubuntu-24.04
     needs: build-and-publish
-    if: >
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      secrets.EC2_HOST != '' &&
-      secrets.EC2_USER != '' &&
-      secrets.EC2_SSH_KEY != '' &&
-      secrets.MYSQL_ROOT_PASSWORD != '' &&
-      secrets.MYSQL_DATABASE != '' &&
-      secrets.MYSQL_USER != '' &&
-      secrets.MYSQL_PASSWORD != '' &&
-      secrets.SMTP_EMAIL != '' &&
-      secrets.SMTP_PASSWORD != '' &&
-      secrets.JWT_SECRET != '' &&
-      secrets.APP_DOMAIN != '' &&
-      secrets.GRAFANA_DOMAIN != '' &&
-      secrets.GRAFANA_ADMIN_PASSWORD != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - name: Check required deployment secrets
+        id: check
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+          GRAFANA_DOMAIN: ${{ secrets.GRAFANA_DOMAIN }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        run: |
+          missing=0
+          for var in \
+            EC2_HOST EC2_USER EC2_SSH_KEY \
+            MYSQL_ROOT_PASSWORD MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD \
+            SMTP_EMAIL SMTP_PASSWORD JWT_SECRET \
+            APP_DOMAIN GRAFANA_DOMAIN GRAFANA_ADMIN_PASSWORD; do
+            if [ -z "${!var}" ]; then
+              echo "Missing secret: $var"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-production:
+    runs-on: ubuntu-24.04
+    needs:
+      - build-and-publish
+      - deploy-gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-gate.outputs.ready == 'true'
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
