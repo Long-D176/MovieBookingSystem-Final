@@ -133,7 +133,7 @@ services:
       - "/:/host:ro,rslave"
 
   cadvisor:
-    image: ghcr.io/google/cadvisor:v0.56.2
+    image: ghcr.io/google/cadvisor:v0.55.1
     restart: unless-stopped
     ports:
       - "127.0.0.1:8081:8080"
