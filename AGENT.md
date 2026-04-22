@@ -254,6 +254,8 @@ The following improvements have already been applied in the repository:
 - Switched the image-based CI/CD path from Docker Hub to GHCR using GitHub Actions `GITHUB_TOKEN`
 - Imported the live EC2 instance, security group, and Elastic IP into local Terraform state
 - Added `.terraform.lock.hcl` after initializing Terraform
+- Standardized all Python service Dockerfiles on `python:3.11-slim` with base-package refresh and pip toolchain upgrades
+- Updated Python service dependencies to resolve the latest local image build and Trivy scan blockers reproduced from GitHub Actions
 
 ### Files That Matter First
 
@@ -309,26 +311,29 @@ The following checks have already succeeded:
 - the Let's Encrypt certificate for the two domains is installed on the EC2 instance and currently expires on `2026-07-21`
 - local Terraform import succeeded for `aws_instance.app`, `aws_security_group.moviebooking_final`, and `aws_eip.app`
 - the current `terraform plan` no longer wants to replace the live EC2 instance or security group; remaining changes are in-place only
+- `python -m compileall services` succeeds after the latest Python image hardening changes
+- all current Python service images build successfully locally
+- representative Trivy image scans succeed locally for the `identity`, `otp`, and `payment` images after the latest dependency upgrades
 
 ### Known Blockers
 
 - GitHub Actions secrets are not configured yet
 - Terraform state has been imported locally, but the current in-place tag/rule-description drift has not been applied
 - Optional Ansible automation is still missing
-- The image-based CI/CD deployment path has not yet been exercised end-to-end
+- The image-based CI/CD deployment path has not yet been confirmed green on GitHub after the latest Python 3.11 image hardening fixes
 - Demo evidence and report evidence files have not been collected yet
 
 ### Current Gap Matrix
 
 - Infrastructure: **partial**
-- Architecture: **partial**
-- Production routing: **partial**
+- Architecture: **implemented for the chosen Tier 2 baseline**
+- Production routing: **implemented**
 - Secret hygiene: **partial**
 - CI: **partial**
 - CD: **partial**
 - Security scanning: **partial**
 - Domain/HTTPS: **implemented**
-- Monitoring: **implemented but not yet exposed over the public Grafana domain**
+- Monitoring: **implemented and exposed through the public Grafana domain**
 - Demo readiness: **partial**
 - Report evidence: **partial**
 
@@ -336,11 +341,12 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. configure GitHub Actions secrets for SSH, app envs, and domains
-2. run the first full GHCR-based image deployment from GitHub Actions
-3. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
-4. capture evidence screenshots and logs for the report and demo
-5. optionally add Ansible if the team wants stronger infrastructure automation coverage
+1. commit and push the latest Python 3.11 image hardening fixes if they are still local-only
+2. configure GitHub Actions secrets for SSH, app envs, and domains
+3. rerun the first full GHCR-based image deployment from GitHub Actions and confirm the hardened CI path is green
+4. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
+5. capture evidence screenshots and logs for the report and demo
+6. optionally add Ansible if the team wants stronger infrastructure automation coverage
 
 ### Resumption Checklist
 
@@ -348,10 +354,11 @@ When opening a new window and continuing this project:
 
 1. confirm the team still wants Tier 2 as the baseline
 2. read the files listed in **Files That Matter First**
-3. check whether GitHub Actions secrets, DNS, or HTTPS have been configured since the last session
-4. check whether the live EC2 stack is still healthy after any lab reset or restart
-5. continue from the **Highest-Value Next Steps** unless the user redirects
-6. always tie the next task to a rubric category and demo evidence
+3. check whether the latest Python image hardening fixes have already been committed and pushed
+4. check whether GitHub Actions secrets, DNS, or HTTPS have changed since the last session
+5. check whether the live EC2 stack is still healthy after any lab reset or restart
+6. continue from the **Highest-Value Next Steps** unless the user redirects
+7. always tie the next task to a rubric category and demo evidence
 
 ## Mandatory Milestone Update Protocol
 
