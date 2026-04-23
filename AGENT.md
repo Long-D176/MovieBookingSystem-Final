@@ -259,6 +259,7 @@ The following improvements have already been applied in the repository:
 - Confirmed the latest GitHub Actions CI run is green through `deploy-gate`
 - Switched the live EC2 stack from the source-built fallback deployment to the GHCR image-based deployment using `deploy/docker-compose.prod.yml`
 - Added manual `workflow_dispatch` support plus post-deploy HTTPS verification to the CI/CD workflow
+- Confirmed the first full hosted GitHub Actions deployment succeeded end-to-end, including `deploy-production`
 
 ### Files That Matter First
 
@@ -323,13 +324,14 @@ The following checks have already succeeded:
 - public HTTPS for the app still returns HTTP 200 after the GHCR image cutover
 - Grafana public health still returns healthy JSON after the GHCR image cutover
 - Prometheus on the EC2 instance still reports ready and shows `prometheus`, `node-exporter`, and `cadvisor` as `up` after the GHCR image cutover
+- GitHub Actions run `24810287874` completed successfully, including `deploy-production`
+- the live EC2 stack is currently on `APP_IMAGE_TAG=65099d301f25aa11d9193f2341620801aa733d78`
+- the automated deploy path successfully updated the running EC2 services to the matching GHCR image tags
 
 ### Known Blockers
 
-- GitHub Actions secrets are not configured yet
 - Terraform state has been imported locally, but the current in-place tag/rule-description drift has not been applied
 - Optional Ansible automation is still missing
-- The automated `deploy-production` job cannot run until GitHub Actions secrets are configured, even though the GHCR image path is now validated locally and live on EC2
 - Demo evidence and report evidence files have not been collected yet
 
 ### Current Gap Matrix
@@ -339,7 +341,7 @@ The following checks have already succeeded:
 - Production routing: **implemented**
 - Secret hygiene: **partial**
 - CI: **implemented**
-- CD: **partial but manually validated with the live GHCR image-based stack**
+- CD: **implemented**
 - Security scanning: **implemented**
 - Domain/HTTPS: **implemented**
 - Monitoring: **implemented and exposed through the public Grafana domain**
@@ -350,12 +352,10 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. configure GitHub Actions secrets for SSH, app envs, and domains
-2. use GitHub Actions **Run workflow** on `CI-CD` so `deploy-production` executes instead of being skipped
-3. verify the automated deployment updates the live EC2 stack to the matching GitHub SHA
-4. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
-5. capture evidence screenshots and logs for the report and demo
-6. optionally add Ansible if the team wants stronger infrastructure automation coverage
+1. capture evidence screenshots and logs for the report and demo while the automated deploy path is healthy
+2. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
+3. optionally add Ansible if the team wants stronger infrastructure automation coverage
+4. rehearse one final small code-change deployment for the final demo
 
 ### Resumption Checklist
 
@@ -363,11 +363,10 @@ When opening a new window and continuing this project:
 
 1. confirm the team still wants Tier 2 as the baseline
 2. read the files listed in **Files That Matter First**
-3. check whether GitHub Actions secrets have been configured since the last session
-4. check whether the live EC2 stack is still healthy after any lab reset or restart
-5. verify whether the live stack is still on the expected GHCR image tag
-6. continue from the **Highest-Value Next Steps** unless the user redirects
-7. always tie the next task to a rubric category and demo evidence
+3. check whether the live EC2 stack is still healthy after any lab reset or restart
+4. verify whether the live stack is still on the expected GHCR image tag
+5. continue from the **Highest-Value Next Steps** unless the user redirects
+6. always tie the next task to a rubric category and demo evidence
 
 ## Mandatory Milestone Update Protocol
 

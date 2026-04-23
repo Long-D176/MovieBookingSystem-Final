@@ -138,3 +138,12 @@ Copy this template for every new milestone:
 - Verification performed: reviewed the updated workflow conditions to confirm image publishing now runs for both `push` and manual workflow dispatch, confirmed deploy jobs remain gated to `main`, and confirmed the checklist now tells the team to use GitHub's **Run workflow** action after secrets are added
 - Remaining blockers: GitHub Actions secrets are still not configured, so the automated `deploy-production` path still cannot be demonstrated end-to-end; optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
 - Next recommended step: add the required GitHub Actions secrets in GitHub, use **Run workflow** on the `CI-CD` workflow, and verify the hosted deploy job completes successfully
+
+## [2026-04-23] Automated GitHub Actions deployment completed successfully
+
+- Summary: Configured the GitHub repository secrets, fixed the final post-deploy verification flake with HTTPS retries, and validated the full hosted pipeline end-to-end so GitHub Actions now builds, publishes, deploys, and verifies the production stack automatically on EC2.
+- Rubric areas affected: CI, CD, deployment orchestration, monitoring, demo readiness
+- Files touched: `.github/workflows/ci-cd.yml`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed GitHub Actions run `24810287874` completed successfully including `deploy-production`; confirmed the EC2 host now uses `APP_IMAGE_TAG=65099d301f25aa11d9193f2341620801aa733d78`; confirmed the running application services are on the matching GHCR image tags; confirmed public HTTPS for the app still returns `200`; confirmed Grafana health remains healthy after the automated deploy
+- Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
+- Next recommended step: capture evidence for the report/demo and rehearse one final small code-change deployment to demonstrate the CI/CD flow live
