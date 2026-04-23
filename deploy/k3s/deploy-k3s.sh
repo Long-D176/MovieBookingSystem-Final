@@ -138,7 +138,7 @@ wait_for_rollouts
 verify_local_endpoints
 
 if [[ "$CUTOVER_NGINX" == "true" ]]; then
-  "${SCRIPT_DIR}/setup-nginx-k3s.sh" "$APP_DOMAIN" "$GRAFANA_DOMAIN" "$K8S_APP_NODEPORT" "$K8S_GRAFANA_NODEPORT"
+  bash "${SCRIPT_DIR}/setup-nginx-k3s.sh" "$APP_DOMAIN" "$GRAFANA_DOMAIN" "$K8S_APP_NODEPORT" "$K8S_GRAFANA_NODEPORT"
 fi
 
 echo "k3s deployment completed successfully."
