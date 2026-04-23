@@ -23,10 +23,10 @@ app.add_middleware(
 
 models.Base.metadata.create_all(bind=engine)
 
-CATALOG_SERVICE_URL = "http://catalog_service:8001"
-IDENTITY_SERVICE_URL = "http://identity_service:8003"
-OTP_SERVICE_URL = "http://otp_service:8002"
-PAYMENT_SERVICE_URL = "http://payment_service:8005"
+CATALOG_SERVICE_URL = os.getenv("CATALOG_SERVICE_URL", "http://catalog_service:8001")
+IDENTITY_SERVICE_URL = os.getenv("IDENTITY_SERVICE_URL", "http://identity_service:8003")
+OTP_SERVICE_URL = os.getenv("OTP_SERVICE_URL", "http://otp_service:8002")
+PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://payment_service:8005")
 
 SECRET_KEY = os.getenv("JWT_SECRET", "change-this-in-production")
 ALGORITHM = "HS256"

@@ -28,7 +28,7 @@ app.add_middleware(
 
 models.Base.metadata.create_all(bind=engine)
 
-BOOKING_SERVICE_URL = "http://booking_service:8004"
+BOOKING_SERVICE_URL = os.getenv("BOOKING_SERVICE_URL", "http://booking_service:8004")
 
 # Cấu hình SMTP 
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")

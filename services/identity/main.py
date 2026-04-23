@@ -70,7 +70,7 @@ def ensure_bootstrap_admin():
 
 ensure_bootstrap_admin()
 
-OTP_SERVICE_URL = "http://otp_service:8002"
+OTP_SERVICE_URL = os.getenv("OTP_SERVICE_URL", "http://otp_service:8002")
 
 # --- SCHEMAS ---
 class UserRegister(BaseModel):
