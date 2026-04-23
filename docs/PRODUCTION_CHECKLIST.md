@@ -14,6 +14,9 @@ Add these repository secrets in GitHub before enabling the deployment workflow:
 - `SMTP_EMAIL`
 - `SMTP_PASSWORD`
 - `JWT_SECRET`
+- `ADMIN_BOOTSTRAP_EMAIL` (optional)
+- `ADMIN_BOOTSTRAP_PASSWORD` (optional)
+- `ADMIN_BOOTSTRAP_FULL_NAME` (optional)
 - `APP_DOMAIN`
 - `GRAFANA_DOMAIN`
 - `GRAFANA_ADMIN_PASSWORD`
@@ -26,6 +29,7 @@ Notes:
 - container publishing now targets GHCR, so the workflow uses the built-in `GITHUB_TOKEN` instead of a separate Docker Hub token
 - the workflow now gates deployment automatically, so validate/build/publish can run before secrets exist and the deploy job will only run after all required secrets are configured
 - after adding the secrets, you can use **Run workflow** in GitHub Actions because the pipeline now supports manual `workflow_dispatch`
+- if the optional bootstrap admin secrets are left blank, production falls back to `SMTP_EMAIL` plus `GRAFANA_ADMIN_PASSWORD` to create a usable admin account automatically
 - keep all secret values out of tracked files
 
 ## Tenten DNS
@@ -64,6 +68,8 @@ docker compose -f deploy/docker-compose.source-prod.yml --env-file deploy/.env.p
 After DNS, CI/CD, and HTTPS are configured, verify:
 
 - `https://tungtungtungtungsahur.site` loads the app
+- `https://tungtungtungtungsahur.site/admin` redirects to the admin dashboard
+- `https://tungtungtungtungsahur.site/adminer/` opens Adminer
 - `https://grafana.tungtungtungtungsahur.site` loads Grafana
 - GitHub Actions pushes versioned Docker images
 - the EC2 instance pulls the matching image tag

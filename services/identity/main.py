@@ -1,8 +1,10 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import models, utils
-from database import engine, get_db
+from database import SessionLocal, engine, get_db
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,6 +19,56 @@ app.add_middleware(
 )
 
 models.Base.metadata.create_all(bind=engine)
+
+
+def ensure_bootstrap_admin():
+    admin_email = os.getenv("ADMIN_BOOTSTRAP_EMAIL") or os.getenv("SMTP_EMAIL")
+    admin_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD") or os.getenv("GRAFANA_ADMIN_PASSWORD")
+    admin_full_name = os.getenv("ADMIN_BOOTSTRAP_FULL_NAME", "System Administrator")
+
+    if not admin_email or not admin_password:
+        print("Skipping bootstrap admin setup because no credentials were provided.")
+        return
+
+    db = SessionLocal()
+    try:
+        existing_user = db.query(models.User).filter(models.User.email == admin_email).first()
+        if existing_user:
+            changed = False
+            if existing_user.role != "ADMIN":
+                existing_user.role = "ADMIN"
+                changed = True
+            if not existing_user.is_verified:
+                existing_user.is_verified = True
+                changed = True
+            if not existing_user.full_name:
+                existing_user.full_name = admin_full_name
+                changed = True
+            if changed:
+                db.commit()
+                print(f"Bootstrap admin updated for {admin_email}.")
+            else:
+                print(f"Bootstrap admin already ready for {admin_email}.")
+            return
+
+        bootstrap_admin = models.User(
+            email=admin_email,
+            full_name=admin_full_name,
+            password_hash=utils.get_password_hash(admin_password),
+            role="ADMIN",
+            is_verified=True,
+        )
+        db.add(bootstrap_admin)
+        db.commit()
+        print(f"Bootstrap admin created for {admin_email}.")
+    except Exception as exc:
+        db.rollback()
+        print(f"Failed to bootstrap admin user: {exc}")
+    finally:
+        db.close()
+
+
+ensure_bootstrap_admin()
 
 OTP_SERVICE_URL = "http://otp_service:8002"
 

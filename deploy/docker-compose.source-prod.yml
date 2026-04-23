@@ -17,6 +17,15 @@ services:
       retries: 10
       start_period: 30s
 
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+
   catalog_service:
     build:
       context: ../services/catalog
@@ -51,6 +60,11 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?charset=utf8mb4
       JWT_SECRET: ${JWT_SECRET}
+      SMTP_EMAIL: ${SMTP_EMAIL}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+      ADMIN_BOOTSTRAP_FULL_NAME: ${ADMIN_BOOTSTRAP_FULL_NAME:-System Administrator}
 
   booking_service:
     build:
@@ -118,6 +132,8 @@ services:
       catalog_service:
         condition: service_started
       identity_service:
+        condition: service_started
+      adminer:
         condition: service_started
     ports:
       - "127.0.0.1:3000:80"
