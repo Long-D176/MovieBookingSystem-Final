@@ -69,6 +69,9 @@ Important:
 - the GitHub Actions workflow now supports manual `workflow_dispatch` reruns and post-deploy HTTPS verification
 - the first fully automated GitHub Actions production deployment completed successfully end-to-end
 - the latest fully automated GitHub Actions production deployment completed successfully end-to-end after retry hardening
+- production admin access was restored by adding a clean `/admin` redirect and an `/adminer/` reverse-proxy route
+- the identity service now bootstraps an admin account automatically from optional bootstrap env vars, falling back to `SMTP_EMAIL` plus `GRAFANA_ADMIN_PASSWORD`
+- GitHub Actions run `24811149792` completed successfully and deployed the admin-access fix to production
 
 ## What Was Verified
 
@@ -111,6 +114,10 @@ Important:
 - GitHub Actions run `24810616764` completed successfully, including `deploy-production`
 - the live EC2 stack now tracks automated deploys and is currently on `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`
 - the automated deploy path updated the running EC2 services to the matching GHCR image tags successfully
+- `https://tungtungtungtungsahur.site/admin` now redirects to the admin dashboard entry point
+- `https://tungtungtungtungsahur.site/adminer/` now returns the Adminer login page
+- the production database now contains a verified `ADMIN` user created by bootstrap logic
+- logging in through the public identity endpoint with the bootstrap admin credentials returns a token carrying the `ADMIN` role
 
 ## What Is Still Missing
 
@@ -125,15 +132,16 @@ Important:
 - cAdvisor had to be pinned to the official `gcr.io/cadvisor/cadvisor:v0.52.1` image because the `ghcr.io/google/cadvisor` tags did not resolve from the EC2 instance during deployment.
 - The most recent GitHub Actions failures were traced to Python service image build/image-scan issues and a transient post-deploy Grafana verification timing issue; both have now been fixed in the workflow and verified on GitHub.
 - A later transient GitHub-hosted `docker/setup-buildx-action` failure was cleared by rerunning CI; the workflow and production environment are currently healthy.
+- Adminer is now exposed publicly through `/adminer/` for project operations; consider locking it back down or disabling it after the final demo if the course does not require ongoing public DB access.
 
 ## Resume Here
 
 If continuing the project with no further user clarification, do this next:
 
 1. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
-2. optionally apply the remaining in-place Terraform drift
-3. optionally add Ansible if needed for score coverage
-4. rehearse the final demo flow using a small code change and another GitHub Actions deployment
+2. rehearse the final demo flow, including admin dashboard login and Adminer access if those screens will be shown
+3. optionally apply the remaining in-place Terraform drift
+4. optionally add Ansible if needed for score coverage
 
 ## Important Files
 

@@ -156,3 +156,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed GitHub Actions run `24810616764` completed successfully including `deploy-production`; confirmed the EC2 host now uses `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`; confirmed the running application services are on the matching GHCR image tags; confirmed public HTTPS for the app still returns `200`; confirmed Grafana health remains healthy after the newest automated deploy
 - Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
 - Next recommended step: capture the final evidence set and rehearse the end-to-end demo using a small visible code change
+
+## [2026-04-23] Admin dashboard and Adminer access restored in production
+
+- Summary: Restored operational admin access by exposing Adminer through the frontend reverse proxy, adding a durable `/admin` redirect, and teaching the identity service to bootstrap a verified `ADMIN` user automatically when production starts.
+- Rubric areas affected: deployment orchestration, production routing, demo readiness, operational continuity
+- Files touched: `frontend/default.conf`, `docker-compose.yml`, `deploy/docker-compose.prod.yml`, `deploy/docker-compose.source-prod.yml`, `.env.example`, `deploy/server.env.example`, `.github/workflows/ci-cd.yml`, `services/identity/database.py`, `services/identity/main.py`, `docs/PRODUCTION_CHECKLIST.md`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed `python -m compileall services` succeeds; confirmed local Compose validation succeeds for both local and production configs; confirmed GitHub Actions run `24811149792` completed successfully; confirmed `https://tungtungtungtungsahur.site/admin` redirects to the admin dashboard; confirmed `https://tungtungtungtungsahur.site/adminer/` returns the Adminer login page; confirmed the production database now contains a verified `ADMIN` user; confirmed logging in through the public identity API returns a token with role `ADMIN`
+- Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet; Adminer should be re-locked or removed after the final demo if public exposure is no longer needed
+- Next recommended step: capture screenshots of the recovered admin surfaces and rehearse the final demo flow using the restored admin login

@@ -261,6 +261,9 @@ The following improvements have already been applied in the repository:
 - Added manual `workflow_dispatch` support plus post-deploy HTTPS verification to the CI/CD workflow
 - Confirmed the first full hosted GitHub Actions deployment succeeded end-to-end, including `deploy-production`
 - Added retry hardening to the remote deploy step and confirmed the latest fully automated deployment succeeds again after transient runner issues
+- Restored production admin access through `/admin` and `/adminer/`
+- Added bootstrap-admin logic in the identity service so production always has a usable verified `ADMIN` account when the right environment values are present
+- Confirmed GitHub Actions run `24811149792` deployed the admin-access fix successfully
 
 ### Files That Matter First
 
@@ -328,12 +331,17 @@ The following checks have already succeeded:
 - GitHub Actions run `24810616764` completed successfully, including `deploy-production`
 - the live EC2 stack is currently on `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`
 - the automated deploy path successfully updated the running EC2 services to the matching GHCR image tags
+- `https://tungtungtungtungsahur.site/admin` now redirects to the admin dashboard page
+- `https://tungtungtungtungsahur.site/adminer/` now serves the Adminer login page through the frontend reverse proxy
+- the production database now contains a verified `ADMIN` user created by bootstrap logic
+- logging in through the public identity endpoint with the bootstrap admin credentials returns a token carrying the `ADMIN` role
 
 ### Known Blockers
 
 - Terraform state has been imported locally, but the current in-place tag/rule-description drift has not been applied
 - Optional Ansible automation is still missing
 - Demo evidence and report evidence files have not been collected yet
+- Adminer is now reachable for operations, so it should be restricted or removed again after the final demo if public DB access is no longer needed
 
 ### Current Gap Matrix
 
@@ -354,9 +362,9 @@ The following checks have already succeeded:
 If the user asks to continue without changing strategy, do the following in order:
 
 1. capture evidence screenshots and logs for the report and demo while the automated deploy path is healthy
-2. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
-3. optionally add Ansible if the team wants stronger infrastructure automation coverage
-4. rehearse one final small code-change deployment for the final demo
+2. rehearse the admin dashboard and Adminer parts of the final demo while the recovered admin surfaces are live
+3. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
+4. optionally add Ansible if the team wants stronger infrastructure automation coverage
 
 ### Resumption Checklist
 
