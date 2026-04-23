@@ -275,6 +275,8 @@ The following improvements have already been applied in the repository:
 - Migrated the live Docker Compose MySQL data into the Kubernetes MySQL StatefulSet
 - Cut the public Nginx proxy from the legacy Compose ports over to Kubernetes NodePorts
 - Stopped the legacy Compose production stack after verifying the public Kubernetes cutover
+- Hardened the hosted Tier 5 GitHub Actions deploy flow to normalize the SSH key secret, validate it on the runner, and wait for SSH readiness before uploading deployment assets
+- Confirmed GitHub Actions run `24817015545` completed successfully on the hosted Tier 5 k3s deployment path
 
 ### Files That Matter First
 
@@ -366,6 +368,9 @@ The following checks have already succeeded:
 - public HTTPS for the app, Adminer, and Grafana still returns healthy responses after the Compose stack was shut down
 - the live production workload is now served by Kubernetes rather than Docker Compose
 - after a Learner Lab reset and instance restart, SSH, public HTTPS, Grafana health, and the full Kubernetes preflight all recovered successfully without data loss
+- GitHub Actions run `24817015545` completed successfully, including `deploy-production`, on the hosted Tier 5 k3s path
+- the live Kubernetes application deployments now track GHCR image tag `cc040ef86d50eb0de5caefa7a37a80f2db25e78e`
+- `bash deploy/demo-preflight.sh` succeeds on the EC2 host after the latest hosted Tier 5 deployment
 
 ### Known Blockers
 
@@ -374,7 +379,6 @@ The following checks have already succeeded:
 - Demo evidence and report evidence files have not been collected yet
 - Adminer is now reachable for operations, so it should be restricted or removed again after the final demo if public DB access is no longer needed
 - The demo helper scripts and Kubernetes cutover path are live on the EC2 host; the main remaining work is evidence capture, optional infrastructure polish, and keeping the new k3s deploy path reflected in CI/CD
-- GitHub Actions run `24815839397` failed in `deploy-production` only because `scp` upload cleared the executable bit on `deploy/k3s/setup-nginx-k3s.sh`; the script has now been patched to call the cutover helper through `bash` and the fixed deploy command was verified manually on the EC2 host
 
 ### Current Gap Matrix
 

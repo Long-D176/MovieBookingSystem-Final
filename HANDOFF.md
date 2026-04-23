@@ -80,6 +80,8 @@ Important:
 - the live Docker Compose MySQL data was migrated into the Kubernetes MySQL StatefulSet
 - host Nginx was cut over from the legacy Compose ports to the Kubernetes NodePorts
 - the legacy Compose production stack was stopped after the public Kubernetes cutover was verified
+- the hosted Tier 5 GitHub Actions deploy flow was hardened to normalize the SSH key secret, validate it on the runner, and wait for SSH readiness before uploading deployment assets
+- GitHub Actions run `24817015545` completed successfully and proved the hosted Tier 5 `deploy-production` path works end-to-end on k3s
 
 ## What Was Verified
 
@@ -136,6 +138,9 @@ Important:
 - public HTTPS for the app, Adminer, and Grafana still returns healthy responses after the legacy Compose stack was shut down
 - the live production stack is now served by Kubernetes rather than Docker Compose
 - after a Learner Lab reset and instance restart, SSH, public HTTPS, Grafana health, and the full Kubernetes preflight all recovered successfully without data loss
+- GitHub Actions run `24817015545` completed successfully, including `deploy-production`, on the hosted Tier 5 path
+- the live Kubernetes application deployments now track GHCR image tag `cc040ef86d50eb0de5caefa7a37a80f2db25e78e`
+- `bash deploy/demo-preflight.sh` still succeeds on the EC2 host after the latest hosted Tier 5 deployment
 
 ## What Is Still Missing
 
@@ -152,7 +157,7 @@ Important:
 - A later transient GitHub-hosted `docker/setup-buildx-action` failure was cleared by rerunning CI; the workflow and production environment are currently healthy.
 - Adminer is now exposed publicly through `/adminer/` for project operations; consider locking it back down or disabling it after the final demo if the course does not require ongoing public DB access.
 - The live production path is now `~/moviebooking-tier5`; the old `~/moviebooking-final` directory remains useful only as a historical Compose fallback.
-- GitHub Actions run `24815839397` reached `deploy-production` but failed only because `scp` upload cleared the executable bit on `deploy/k3s/setup-nginx-k3s.sh`; the deploy script has now been patched to call the cutover helper through `bash`, and the fixed command was verified successfully on the EC2 host.
+- The earlier GitHub Actions Tier 5 deploy blockers have been cleared; run `24817015545` is the new proof point that the hosted `deploy-production` path now works end-to-end on the k3s stack.
 
 ## Resume Here
 
