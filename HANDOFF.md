@@ -72,6 +72,7 @@ Important:
 - production admin access was restored by adding a clean `/admin` redirect and an `/adminer/` reverse-proxy route
 - the identity service now bootstraps an admin account automatically from optional bootstrap env vars, falling back to `SMTP_EMAIL` plus `GRAFANA_ADMIN_PASSWORD`
 - GitHub Actions run `24811149792` completed successfully and deployed the admin-access fix to production
+- demo helper scripts were added for production preflight checks and failure-recovery simulation
 
 ## What Was Verified
 
@@ -118,6 +119,7 @@ Important:
 - `https://tungtungtungtungsahur.site/adminer/` now returns the Adminer login page
 - the production database now contains a verified `ADMIN` user created by bootstrap logic
 - logging in through the public identity endpoint with the bootstrap admin credentials returns a token carrying the `ADMIN` role
+- `deploy/demo-preflight.sh` and `deploy/demo-simulate-recovery.sh` pass Bash syntax validation locally
 
 ## What Is Still Missing
 
@@ -138,10 +140,11 @@ Important:
 
 If continuing the project with no further user clarification, do this next:
 
-1. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
-2. rehearse the final demo flow, including admin dashboard login and Adminer access if those screens will be shown
-3. optionally apply the remaining in-place Terraform drift
-4. optionally add Ansible if needed for score coverage
+1. push and deploy the new demo helper scripts if they are not yet live on the EC2 host
+2. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
+3. rehearse the final demo flow, including admin dashboard login, Adminer access, and failure recovery
+4. optionally apply the remaining in-place Terraform drift
+5. optionally add Ansible if needed for score coverage
 
 ## Important Files
 
@@ -154,9 +157,13 @@ If continuing the project with no further user clarification, do this next:
 - `deploy/docker-compose.source-prod.yml`
 - `deploy/server.env.example`
 - `docs/PRODUCTION_CHECKLIST.md`
+- `docs/DEMO_RUNBOOK.md`
+- `docs/evidence/README.md`
 - `infra/terraform/main.tf`
 - `infra/terraform/.terraform.lock.hcl`
 - `monitoring/prometheus/prometheus.yml`
 - `docker-compose.yml`
 - `.env.example`
 - `frontend/default.conf`
+- `deploy/demo-preflight.sh`
+- `deploy/demo-simulate-recovery.sh`

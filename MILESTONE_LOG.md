@@ -165,3 +165,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed `python -m compileall services` succeeds; confirmed local Compose validation succeeds for both local and production configs; confirmed GitHub Actions run `24811149792` completed successfully; confirmed `https://tungtungtungtungsahur.site/admin` redirects to the admin dashboard; confirmed `https://tungtungtungtungsahur.site/adminer/` returns the Adminer login page; confirmed the production database now contains a verified `ADMIN` user; confirmed logging in through the public identity API returns a token with role `ADMIN`
 - Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet; Adminer should be re-locked or removed after the final demo if public exposure is no longer needed
 - Next recommended step: capture screenshots of the recovered admin surfaces and rehearse the final demo flow using the restored admin login
+
+## [2026-04-23] Demo runbook and recovery scripts added
+
+- Summary: Added reusable production demo scripts for preflight verification and container recovery simulation, plus a runbook and evidence checklist so the final demo can be performed consistently without ad hoc commands.
+- Rubric areas affected: demo readiness, monitoring, deployment orchestration, report evidence readiness
+- Files touched: `deploy/demo-preflight.sh`, `deploy/demo-simulate-recovery.sh`, `docs/DEMO_RUNBOOK.md`, `docs/evidence/README.md`, `docs/PRODUCTION_CHECKLIST.md`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed both new Bash scripts pass `bash -n` syntax validation inside a clean `bash:5.2` container; reviewed the updated checklist and runbook for consistency with the live production domains and current deployment flow
+- Remaining blockers: the new demo helper scripts still need to be pushed and deployed to the EC2 host; optional Terraform drift and optional Ansible remain open; evidence screenshots/logs still need to be captured
+- Next recommended step: push the demo helper changes, confirm the new scripts exist on the EC2 host, then run the preflight and failure-recovery commands once against production

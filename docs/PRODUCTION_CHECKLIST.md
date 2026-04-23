@@ -51,6 +51,20 @@ bash deploy/setup-nginx.sh tungtungtungtungsahur.site grafana.tungtungtungtungsa
 bash deploy/setup-certbot.sh tungtungtungtungsahur.site grafana.tungtungtungtungsahur.site your-email@example.com
 ```
 
+Before the demo, run:
+
+```bash
+cd ~/moviebooking-final
+bash deploy/demo-preflight.sh
+```
+
+To simulate a recoverable container failure during the demo:
+
+```bash
+cd ~/moviebooking-final
+bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site
+```
+
 ## Manual Fallback Deployment
 
 If GitHub Actions secrets are not configured yet, the EC2 instance can still run a production-like build directly from the repository source:

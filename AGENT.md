@@ -264,6 +264,8 @@ The following improvements have already been applied in the repository:
 - Restored production admin access through `/admin` and `/adminer/`
 - Added bootstrap-admin logic in the identity service so production always has a usable verified `ADMIN` account when the right environment values are present
 - Confirmed GitHub Actions run `24811149792` deployed the admin-access fix successfully
+- Added reusable demo helper scripts for preflight checks and failure-recovery simulation
+- Added a dedicated demo runbook and evidence checklist
 
 ### Files That Matter First
 
@@ -335,6 +337,7 @@ The following checks have already succeeded:
 - `https://tungtungtungtungsahur.site/adminer/` now serves the Adminer login page through the frontend reverse proxy
 - the production database now contains a verified `ADMIN` user created by bootstrap logic
 - logging in through the public identity endpoint with the bootstrap admin credentials returns a token carrying the `ADMIN` role
+- `deploy/demo-preflight.sh` and `deploy/demo-simulate-recovery.sh` now exist in the repository and pass Bash syntax validation
 
 ### Known Blockers
 
@@ -342,6 +345,7 @@ The following checks have already succeeded:
 - Optional Ansible automation is still missing
 - Demo evidence and report evidence files have not been collected yet
 - Adminer is now reachable for operations, so it should be restricted or removed again after the final demo if public DB access is no longer needed
+- The demo helper scripts have been added locally but must still be pushed and deployed before they can be executed on the EC2 host
 
 ### Current Gap Matrix
 
@@ -361,10 +365,11 @@ The following checks have already succeeded:
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. capture evidence screenshots and logs for the report and demo while the automated deploy path is healthy
-2. rehearse the admin dashboard and Adminer parts of the final demo while the recovered admin surfaces are live
-3. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
-4. optionally add Ansible if the team wants stronger infrastructure automation coverage
+1. push and deploy the demo helper scripts so they are available on the EC2 host
+2. run the new preflight and failure-recovery commands once against production
+3. capture evidence screenshots and logs for the report and demo while the automated deploy path is healthy
+4. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
+5. optionally add Ansible if the team wants stronger infrastructure automation coverage
 
 ### Resumption Checklist
 
