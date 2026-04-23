@@ -260,6 +260,7 @@ The following improvements have already been applied in the repository:
 - Switched the live EC2 stack from the source-built fallback deployment to the GHCR image-based deployment using `deploy/docker-compose.prod.yml`
 - Added manual `workflow_dispatch` support plus post-deploy HTTPS verification to the CI/CD workflow
 - Confirmed the first full hosted GitHub Actions deployment succeeded end-to-end, including `deploy-production`
+- Added retry hardening to the remote deploy step and confirmed the latest fully automated deployment succeeds again after transient runner issues
 
 ### Files That Matter First
 
@@ -324,8 +325,8 @@ The following checks have already succeeded:
 - public HTTPS for the app still returns HTTP 200 after the GHCR image cutover
 - Grafana public health still returns healthy JSON after the GHCR image cutover
 - Prometheus on the EC2 instance still reports ready and shows `prometheus`, `node-exporter`, and `cadvisor` as `up` after the GHCR image cutover
-- GitHub Actions run `24810287874` completed successfully, including `deploy-production`
-- the live EC2 stack is currently on `APP_IMAGE_TAG=65099d301f25aa11d9193f2341620801aa733d78`
+- GitHub Actions run `24810616764` completed successfully, including `deploy-production`
+- the live EC2 stack is currently on `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`
 - the automated deploy path successfully updated the running EC2 services to the matching GHCR image tags
 
 ### Known Blockers

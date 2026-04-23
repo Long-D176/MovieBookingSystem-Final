@@ -147,3 +147,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed GitHub Actions run `24810287874` completed successfully including `deploy-production`; confirmed the EC2 host now uses `APP_IMAGE_TAG=65099d301f25aa11d9193f2341620801aa733d78`; confirmed the running application services are on the matching GHCR image tags; confirmed public HTTPS for the app still returns `200`; confirmed Grafana health remains healthy after the automated deploy
 - Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
 - Next recommended step: capture evidence for the report/demo and rehearse one final small code-change deployment to demonstrate the CI/CD flow live
+
+## [2026-04-23] Automated deployment stabilized after transient runner issues
+
+- Summary: Hardened the workflow with retry logic for the remote deploy step, retried after a transient GitHub-hosted Buildx failure, and confirmed a fresh fully automated deployment run succeeds again so the latest live EC2 stack now tracks the newest GitHub SHA automatically.
+- Rubric areas affected: CI, CD, deployment orchestration, demo readiness
+- Files touched: `.github/workflows/ci-cd.yml`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: confirmed GitHub Actions run `24810616764` completed successfully including `deploy-production`; confirmed the EC2 host now uses `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`; confirmed the running application services are on the matching GHCR image tags; confirmed public HTTPS for the app still returns `200`; confirmed Grafana health remains healthy after the newest automated deploy
+- Remaining blockers: optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
+- Next recommended step: capture the final evidence set and rehearse the end-to-end demo using a small visible code change

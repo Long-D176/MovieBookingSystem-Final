@@ -68,6 +68,7 @@ Important:
 - the EC2 instance was updated from the source-built fallback stack to the GHCR image-based production stack using `deploy/docker-compose.prod.yml`
 - the GitHub Actions workflow now supports manual `workflow_dispatch` reruns and post-deploy HTTPS verification
 - the first fully automated GitHub Actions production deployment completed successfully end-to-end
+- the latest fully automated GitHub Actions production deployment completed successfully end-to-end after retry hardening
 
 ## What Was Verified
 
@@ -107,8 +108,8 @@ Important:
 - public HTTPS for `https://tungtungtungtungsahur.site` still returns HTTP 200 after the image-based cutover
 - Grafana public health still returns healthy JSON after the image-based cutover
 - Prometheus still reports ready and active `up` targets for `prometheus`, `node-exporter`, and `cadvisor` after the image-based cutover
-- GitHub Actions run `24810287874` completed successfully, including `deploy-production`
-- the live EC2 stack now tracks automated deploys and is currently on `APP_IMAGE_TAG=65099d301f25aa11d9193f2341620801aa733d78`
+- GitHub Actions run `24810616764` completed successfully, including `deploy-production`
+- the live EC2 stack now tracks automated deploys and is currently on `APP_IMAGE_TAG=d5ff698232c3354a66a16b4bfa7a186a85a5c9d4`
 - the automated deploy path updated the running EC2 services to the matching GHCR image tags successfully
 
 ## What Is Still Missing
@@ -123,6 +124,7 @@ Important:
 - The graded GitHub Actions deploy job is now working, but future deploys still depend on the GitHub repository secrets remaining configured and valid.
 - cAdvisor had to be pinned to the official `gcr.io/cadvisor/cadvisor:v0.52.1` image because the `ghcr.io/google/cadvisor` tags did not resolve from the EC2 instance during deployment.
 - The most recent GitHub Actions failures were traced to Python service image build/image-scan issues and a transient post-deploy Grafana verification timing issue; both have now been fixed in the workflow and verified on GitHub.
+- A later transient GitHub-hosted `docker/setup-buildx-action` failure was cleared by rerunning CI; the workflow and production environment are currently healthy.
 
 ## Resume Here
 
