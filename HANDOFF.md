@@ -10,8 +10,8 @@ This file must be refreshed after every major milestone. For milestone-by-milest
 
 ## Current Direction
 
-- Selected practical baseline: **Tier 2**
-- Strategy: maximize total score through strong CI/CD, infrastructure reproducibility, monitoring, demo quality, and report evidence
+- Current live architecture: **Tier 5 on k3s Kubernetes**
+- Strategy: keep the now-live Kubernetes production path stable, demoable, and automatically deployable; treat the older Docker Compose stack only as a rollback fallback
 
 ## Confirmed Environment Decisions
 
@@ -74,6 +74,12 @@ Important:
 - GitHub Actions run `24811149792` completed successfully and deployed the admin-access fix to production
 - demo helper scripts were added for production preflight checks and failure-recovery simulation
 - the demo helper scripts were deployed to production and verified successfully on the EC2 host
+- `deploy/k3s/` scripts and manifests were added to support Tier 5 on k3s Kubernetes
+- service-to-service URLs and database URLs were made environment-driven so the same images work cleanly with Kubernetes service DNS
+- k3s was installed on the EC2 instance and a parallel Kubernetes stack was deployed in namespace `moviebooking`
+- the live Docker Compose MySQL data was migrated into the Kubernetes MySQL StatefulSet
+- host Nginx was cut over from the legacy Compose ports to the Kubernetes NodePorts
+- the legacy Compose production stack was stopped after the public Kubernetes cutover was verified
 
 ## What Was Verified
 
@@ -123,6 +129,12 @@ Important:
 - `deploy/demo-preflight.sh` and `deploy/demo-simulate-recovery.sh` pass Bash syntax validation locally
 - `bash deploy/demo-preflight.sh` now runs successfully on the EC2 host against the live production stack
 - `bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site` now succeeds on the EC2 host and restores the killed service
+- the k3s node on the EC2 instance is `Ready`
+- Kubernetes manifest templates under `deploy/k3s/` render successfully with `envsubst`
+- the `moviebooking` namespace now has healthy pods, services, and PVCs for the app, MySQL, Prometheus, Grafana, node-exporter, and cAdvisor
+- Prometheus inside Kubernetes reports `prometheus`, `node-exporter`, and `cadvisor` as active `up` targets
+- public HTTPS for the app, Adminer, and Grafana still returns healthy responses after the legacy Compose stack was shut down
+- the live production stack is now served by Kubernetes rather than Docker Compose
 
 ## What Is Still Missing
 
@@ -138,15 +150,17 @@ Important:
 - The most recent GitHub Actions failures were traced to Python service image build/image-scan issues and a transient post-deploy Grafana verification timing issue; both have now been fixed in the workflow and verified on GitHub.
 - A later transient GitHub-hosted `docker/setup-buildx-action` failure was cleared by rerunning CI; the workflow and production environment are currently healthy.
 - Adminer is now exposed publicly through `/adminer/` for project operations; consider locking it back down or disabling it after the final demo if the course does not require ongoing public DB access.
+- The live production path is now `~/moviebooking-tier5`; the old `~/moviebooking-final` directory remains useful only as a historical Compose fallback.
 
 ## Resume Here
 
 If continuing the project with no further user clarification, do this next:
 
-1. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
-2. rehearse the final demo flow, including admin dashboard login, Adminer access, and failure recovery
+1. capture evidence screenshots and logs for the demo/report while the automated Tier 5 path is working
+2. rehearse the final demo flow, including admin dashboard login, Adminer access, and Kubernetes failure recovery
 3. optionally apply the remaining in-place Terraform drift
 4. optionally add Ansible if needed for score coverage
+5. lock down Adminer after grading if long-term public DB access is not needed
 
 ## Important Files
 
@@ -155,6 +169,10 @@ If continuing the project with no further user clarification, do this next:
 - `FINAL_PROJECT_GUIDE.md`
 - `MILESTONE_LOG.md`
 - `.github/workflows/ci-cd.yml`
+- `deploy/k3s/deploy-k3s.sh`
+- `deploy/k3s/apps.yaml.tmpl`
+- `deploy/k3s/db.yaml.tmpl`
+- `deploy/k3s/setup-nginx-k3s.sh`
 - `deploy/docker-compose.prod.yml`
 - `deploy/docker-compose.source-prod.yml`
 - `deploy/server.env.example`
@@ -163,6 +181,7 @@ If continuing the project with no further user clarification, do this next:
 - `docs/evidence/README.md`
 - `infra/terraform/main.tf`
 - `infra/terraform/.terraform.lock.hcl`
+- `monitoring/prometheus/prometheus-k3s.yml`
 - `monitoring/prometheus/prometheus.yml`
 - `docker-compose.yml`
 - `.env.example`

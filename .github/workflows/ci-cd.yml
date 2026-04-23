@@ -49,6 +49,18 @@ jobs:
       - name: Validate Docker Compose
         run: docker compose config
 
+      - name: Validate k3s deployment scripts
+        run: docker run --rm -v "$PWD:/workspace" -w /workspace bash:5.2 bash -n deploy/k3s/install-k3s.sh deploy/k3s/setup-nginx-k3s.sh deploy/k3s/restore-nginx-compose.sh deploy/k3s/deploy-k3s.sh
+
+      - name: Render k3s manifests
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace alpine:3.21 sh -lc "
+            apk add --no-cache gettext >/dev/null &&
+            export K8S_NAMESPACE=moviebooking K8S_APP_NODEPORT=30080 K8S_GRAFANA_NODEPORT=30081 IMAGE_NAMESPACE=ghcr.io/long-d176 IMAGE_PREFIX=${IMAGE_PREFIX} APP_IMAGE_TAG=test GRAFANA_DOMAIN=grafana.tungtungtungtungsahur.site &&
+            envsubst < deploy/k3s/db.yaml.tmpl >/dev/null &&
+            envsubst < deploy/k3s/apps.yaml.tmpl >/dev/null
+          "
+
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -211,7 +223,7 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "mkdir -p ~/moviebooking-final/deploy ~/moviebooking-final/monitoring"
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "rm -rf ~/moviebooking-tier5 && mkdir -p ~/moviebooking-tier5"
 
       - name: Render production env file
         env:
@@ -249,6 +261,9 @@ jobs:
           APP_DOMAIN=${APP_DOMAIN}
           GRAFANA_DOMAIN=${GRAFANA_DOMAIN}
           GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+          K8S_NAMESPACE=moviebooking
+          K8S_APP_NODEPORT=30080
+          K8S_GRAFANA_NODEPORT=30081
           EOF
 
       - name: Upload deployment assets
@@ -256,21 +271,19 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          scp -i ~/.ssh/deploy_key -r deploy/* "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/"
-          scp -i ~/.ssh/deploy_key -r monitoring "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/"
-          scp -i ~/.ssh/deploy_key database/init.sql "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/database-init.sql"
-          scp -i ~/.ssh/deploy_key .env.production "${EC2_USER}@${EC2_HOST}:~/moviebooking-final/deploy/.env.production"
+          scp -i ~/.ssh/deploy_key -r deploy monitoring database "${EC2_USER}@${EC2_HOST}:~/moviebooking-tier5/"
+          scp -i ~/.ssh/deploy_key .env.production "${EC2_USER}@${EC2_HOST}:~/moviebooking-tier5/deploy/.env.production"
 
-      - name: Deploy production stack
+      - name: Deploy production Kubernetes stack
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
           for attempt in 1 2 3; do
             if ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "
-              cd ~/moviebooking-final &&
-              docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production pull &&
-              docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production up -d --remove-orphans
+              cd ~/moviebooking-tier5 &&
+              bash deploy/k3s/install-k3s.sh &&
+              CUTOVER_NGINX=true bash deploy/k3s/deploy-k3s.sh deploy/.env.production
             "; then
               exit 0
             fi
@@ -284,14 +297,30 @@ jobs:
             sleep 10
           done
 
-      - name: Verify running services
+      - name: Stop legacy Compose stack
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
           ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "
-            cd ~/moviebooking-final &&
-            docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production ps
+            if [ -f ~/moviebooking-final/deploy/docker-compose.prod.yml ] && [ -f ~/moviebooking-final/deploy/.env.production ]; then
+              cd ~/moviebooking-final &&
+              docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.production down || true
+            fi
+          "
+
+      - name: Verify running Kubernetes services
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" "
+            sudo k3s kubectl -n moviebooking get pods &&
+            echo '---' &&
+            sudo k3s kubectl -n moviebooking get svc,pvc &&
+            echo '---' &&
+            curl --fail --silent --show-error http://127.0.0.1:30080 > /dev/null &&
+            curl --fail --silent --show-error http://127.0.0.1:30081/api/health
           "
 
       - name: Verify public app over HTTPS

@@ -25,15 +25,15 @@ Convert `MovieBookingSystem` into a production-style system that satisfies the f
 
 ## Current Best-Fit Strategy
 
-This repository is already closest to **Tier 2: Single-Server Containerized Deployment using Docker Compose**.
+This repository now runs a **Tier 5: Kubernetes deployment** on top of **k3s** on the production EC2 instance.
 
-Default strategy:
+Current strategy:
 
-1. Complete a strong Tier 2 baseline first.
-2. Max out infrastructure, CI/CD, monitoring, demo, and report quality.
-3. Only attempt Tier 4 or Tier 5 after the Tier 2 baseline is fully stable.
+1. Keep the Tier 5 production path stable and demoable.
+2. Use the old Docker Compose path only as rollback history, not as the active target.
+3. Max out CI/CD, monitoring, demo, and report evidence around the now-live Kubernetes path.
 
-This is the preferred default unless the user explicitly decides to trade delivery safety for orchestration score.
+Historical note: the project deliberately reached a strong Tier 2 baseline first, then upgraded to Tier 5 after CI/CD, HTTPS, and monitoring were already stable.
 
 ## Why Tier Choice Matters
 
@@ -190,8 +190,8 @@ This section is for fast handoff when a future agent opens a new window without 
 
 ### Chosen Direction
 
-- Current recommended architecture: **Tier 2**
-- Reason: this repository already uses Docker Compose and can reach a strong total score faster by maximizing CI/CD, infrastructure, monitoring, demo, and report quality
+- Current recommended architecture: **Tier 5**
+- Reason: the Tier 2 baseline is complete and live production has now been cut over to **k3s Kubernetes** on the existing EC2 instance; keep the older Docker Compose path only as a rollback fallback
 
 ### Confirmed External Environment
 
@@ -267,6 +267,14 @@ The following improvements have already been applied in the repository:
 - Added reusable demo helper scripts for preflight checks and failure-recovery simulation
 - Added a dedicated demo runbook and evidence checklist
 - Confirmed the demo helper scripts now run successfully on the production EC2 host
+- Added `deploy/k3s/` deployment, bootstrap, and Nginx cutover scripts for Kubernetes
+- Added `monitoring/prometheus/prometheus-k3s.yml`
+- Updated backend service-to-service URLs and database URLs so they can be overridden cleanly for Kubernetes service DNS
+- Installed `k3s` on the production EC2 instance and confirmed the node is ready
+- Deployed a parallel Kubernetes stack in namespace `moviebooking` using the GHCR image set
+- Migrated the live Docker Compose MySQL data into the Kubernetes MySQL StatefulSet
+- Cut the public Nginx proxy from the legacy Compose ports over to Kubernetes NodePorts
+- Stopped the legacy Compose production stack after verifying the public Kubernetes cutover
 
 ### Files That Matter First
 
@@ -278,18 +286,26 @@ If resuming work in a new session, inspect these files first:
 4. `SKILL.md`
 5. `FINAL_PROJECT_GUIDE.md`
 6. `.github/workflows/ci-cd.yml`
-7. `deploy/docker-compose.prod.yml`
-8. `deploy/docker-compose.source-prod.yml`
-9. `deploy/server.env.example`
-10. `docs/PRODUCTION_CHECKLIST.md`
-11. `infra/terraform/main.tf`
-12. `monitoring/prometheus/prometheus.yml`
-13. `docker-compose.yml`
-14. `.env.example`
-15. `frontend/default.conf`
-16. `frontend/app.js`
-17. `frontend/admin.html`
-18. `frontend/scanner.html`
+7. `deploy/k3s/deploy-k3s.sh`
+8. `deploy/k3s/apps.yaml.tmpl`
+9. `deploy/k3s/db.yaml.tmpl`
+10. `deploy/k3s/setup-nginx-k3s.sh`
+11. `deploy/demo-preflight.sh`
+12. `deploy/demo-simulate-recovery.sh`
+13. `deploy/server.env.example`
+14. `docs/PRODUCTION_CHECKLIST.md`
+15. `docs/DEMO_RUNBOOK.md`
+16. `infra/terraform/main.tf`
+17. `monitoring/prometheus/prometheus-k3s.yml`
+18. `monitoring/prometheus/prometheus.yml`
+19. `deploy/docker-compose.prod.yml`
+20. `deploy/docker-compose.source-prod.yml`
+21. `docker-compose.yml`
+22. `.env.example`
+23. `frontend/default.conf`
+24. `frontend/app.js`
+25. `frontend/admin.html`
+26. `frontend/scanner.html`
 
 ### Verified So Far
 
@@ -341,6 +357,14 @@ The following checks have already succeeded:
 - `deploy/demo-preflight.sh` and `deploy/demo-simulate-recovery.sh` now exist in the repository and pass Bash syntax validation
 - `bash deploy/demo-preflight.sh` succeeds on the EC2 host against the live production stack
 - `bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site` succeeds on the EC2 host and recovers the service cleanly
+- Kubernetes deployment scripts under `deploy/k3s/` pass Bash syntax validation locally
+- Kubernetes manifest templates render successfully with `envsubst`
+- the production EC2 host now has `k3s` installed and the node is `Ready`
+- the Kubernetes namespace `moviebooking` contains healthy pods, services, and PVCs for the app, MySQL, Prometheus, Grafana, node-exporter, and cAdvisor
+- Prometheus inside Kubernetes reports active `up` targets for `prometheus`, `node-exporter`, and `cadvisor`
+- host-level Nginx now proxies the public app and Grafana domains to Kubernetes NodePorts `30080` and `30081`
+- public HTTPS for the app, Adminer, and Grafana still returns healthy responses after the Compose stack was shut down
+- the live production workload is now served by Kubernetes rather than Docker Compose
 
 ### Known Blockers
 
@@ -348,12 +372,12 @@ The following checks have already succeeded:
 - Optional Ansible automation is still missing
 - Demo evidence and report evidence files have not been collected yet
 - Adminer is now reachable for operations, so it should be restricted or removed again after the final demo if public DB access is no longer needed
-- The demo helper scripts are live on the EC2 host; the main remaining work is evidence capture and optional infrastructure polish
+- The demo helper scripts and Kubernetes cutover path are live on the EC2 host; the main remaining work is evidence capture, optional infrastructure polish, and keeping the new k3s deploy path reflected in CI/CD
 
 ### Current Gap Matrix
 
 - Infrastructure: **partial**
-- Architecture: **implemented for the chosen Tier 2 baseline**
+- Architecture: **implemented for Tier 5 on k3s Kubernetes**
 - Production routing: **implemented**
 - Secret hygiene: **partial**
 - CI: **implemented**
@@ -361,26 +385,27 @@ The following checks have already succeeded:
 - Security scanning: **implemented**
 - Domain/HTTPS: **implemented**
 - Monitoring: **implemented and exposed through the public Grafana domain**
-- Demo readiness: **partial**
+- Demo readiness: **implemented, pending evidence capture**
 - Report evidence: **partial**
 
 ### Highest-Value Next Steps
 
 If the user asks to continue without changing strategy, do the following in order:
 
-1. capture evidence screenshots and logs for the report and demo while the automated deploy path is healthy
-2. rehearse the full demo using the preflight and failure-recovery scripts plus the admin surfaces
+1. capture evidence screenshots and logs for the report and demo while the automated Tier 5 path is healthy
+2. rehearse the full demo using the Kubernetes-aware preflight and failure-recovery scripts plus the admin surfaces
 3. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
 4. optionally add Ansible if the team wants stronger infrastructure automation coverage
+5. restrict or remove the public Adminer route after grading if long-term exposure is not needed
 
 ### Resumption Checklist
 
 When opening a new window and continuing this project:
 
-1. confirm the team still wants Tier 2 as the baseline
+1. confirm the team still wants to stay on the current Tier 5 k3s production path
 2. read the files listed in **Files That Matter First**
-3. check whether the live EC2 stack is still healthy after any lab reset or restart
-4. verify whether the live stack is still on the expected GHCR image tag
+3. check whether the live EC2 k3s stack is still healthy after any lab reset or restart
+4. verify whether the live stack is still on the expected GHCR image tag and Kubernetes workload set
 5. continue from the **Highest-Value Next Steps** unless the user redirects
 6. always tie the next task to a rubric category and demo evidence
 

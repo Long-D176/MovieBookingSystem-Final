@@ -19,13 +19,14 @@ Use this runbook to demonstrate the production system without relying on memory 
 SSH into the EC2 host and run:
 
 ```bash
-cd ~/moviebooking-final
+cd ~/moviebooking-tier5
 bash deploy/demo-preflight.sh
 ```
 
 This verifies:
 
-- production containers are running
+- production Kubernetes workloads are running
+- local NodePort checks are healthy
 - public HTTPS is responding
 - admin dashboard route is reachable
 - Adminer is reachable
@@ -49,18 +50,18 @@ This verifies:
 9. SSH into the server and run the failure simulation command.
 10. Refresh Grafana or rerun the preflight script to show recovery.
 
-For the Tier 2 Docker Compose architecture, explain that the recovery step is demonstrated through deployment tooling on a single server, not through a higher-tier orchestrator such as Swarm or Kubernetes.
+For the Tier 5 Kubernetes architecture, explain that the recovery step is demonstrated by deleting a live pod and showing Kubernetes recreate it automatically while public traffic stays healthy through the host Nginx reverse proxy.
 
 ## Failure Simulation Command
 
 From the EC2 host:
 
 ```bash
-cd ~/moviebooking-final
-bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site
+cd ~/moviebooking-tier5
+bash deploy/demo-simulate-recovery.sh catalog-service https://tungtungtungtungsahur.site
 ```
 
-You can replace `catalog_service` with another production service if you want to demonstrate recovery on a different container.
+You can replace `catalog-service` with another production deployment if you want to demonstrate recovery on a different workload.
 
 ## Admin Access Notes
 
@@ -77,4 +78,4 @@ You can replace `catalog_service` with another production service if you want to
 - Adminer login success
 - Grafana dashboard
 - Preflight output
-- Failure simulation output showing container recovery
+- Failure simulation output showing pod recovery

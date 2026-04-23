@@ -54,18 +54,18 @@ bash deploy/setup-certbot.sh tungtungtungtungsahur.site grafana.tungtungtungtung
 Before the demo, run:
 
 ```bash
-cd ~/moviebooking-final
+cd ~/moviebooking-tier5
 bash deploy/demo-preflight.sh
 ```
 
-To simulate a recoverable container failure during the demo:
+To simulate a recoverable Kubernetes failure during the demo:
 
 ```bash
-cd ~/moviebooking-final
-bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site
+cd ~/moviebooking-tier5
+bash deploy/demo-simulate-recovery.sh catalog-service https://tungtungtungtungsahur.site
 ```
 
-For the chosen Tier 2 setup, this script demonstrates recovery through Docker Compose on the production VM.
+For the current Tier 5 setup, this script deletes a live pod and lets Kubernetes recreate it automatically on the production VM.
 
 ## Manual Fallback Deployment
 
@@ -79,6 +79,8 @@ cp deploy/server.env.example deploy/.env.production
 docker compose -f deploy/docker-compose.source-prod.yml --env-file deploy/.env.production up -d --build
 ```
 
+This is now a legacy Compose fallback path. The current live production path is Kubernetes via `~/moviebooking-tier5`.
+
 ## First Production Validation
 
 After DNS, CI/CD, and HTTPS are configured, verify:
@@ -88,5 +90,5 @@ After DNS, CI/CD, and HTTPS are configured, verify:
 - `https://tungtungtungtungsahur.site/adminer/` opens Adminer
 - `https://grafana.tungtungtungtungsahur.site` loads Grafana
 - GitHub Actions pushes versioned Docker images
-- the EC2 instance pulls the matching image tag
-- Prometheus sees `prometheus`, `node_exporter`, and `cadvisor`
+- the EC2 instance applies the matching image tag into Kubernetes
+- Prometheus sees `prometheus`, `node-exporter`, and `cadvisor`
