@@ -49,6 +49,8 @@ This verifies:
 9. SSH into the server and run the failure simulation command.
 10. Refresh Grafana or rerun the preflight script to show recovery.
 
+For the Tier 2 Docker Compose architecture, explain that the recovery step is demonstrated through deployment tooling on a single server, not through a higher-tier orchestrator such as Swarm or Kubernetes.
+
 ## Failure Simulation Command
 
 From the EC2 host:

@@ -65,6 +65,8 @@ cd ~/moviebooking-final
 bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site
 ```
 
+For the chosen Tier 2 setup, this script demonstrates recovery through Docker Compose on the production VM.
+
 ## Manual Fallback Deployment
 
 If GitHub Actions secrets are not configured yet, the EC2 instance can still run a production-like build directly from the repository source:
