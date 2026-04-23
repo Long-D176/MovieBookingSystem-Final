@@ -188,6 +188,23 @@ def add_seat_type(st: SeatTypeCreate, user=Depends(check_admin_role), db: Sessio
     db.commit()
     return {"status": "success", "message": f"Đã thêm loại ghế: {st.name}"}
 
+@app.delete("/seat-types/{seat_type_id}")
+def delete_seat_type(seat_type_id: int, user=Depends(check_admin_role), db: Session = Depends(get_db)):
+    seat_type = db.query(models.SeatType).filter(models.SeatType.seat_type_id == seat_type_id).first()
+    if not seat_type:
+        raise HTTPException(status_code=404, detail="Loại ghế không tồn tại")
+
+    seats_using_type = db.query(models.Seat).filter(models.Seat.seat_type_id == seat_type_id).count()
+    if seats_using_type > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Không thể xóa loại ghế này vì đang có {seats_using_type} ghế sử dụng.",
+        )
+
+    db.delete(seat_type)
+    db.commit()
+    return {"status": "success", "message": f"Đã xóa loại ghế: {seat_type.name}"}
+
 @app.post("/seats/batch")
 def add_seats_batch(batch: SeatBatchCreate, user=Depends(check_admin_role), db: Session = Depends(get_db)):
     count = 0

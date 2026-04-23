@@ -74,6 +74,7 @@
         .btn-stop { background: #FF4757; color: white; }
         .btn-republish { background: #FFA502; color: black; }
         .btn-del { background: #FF4757; color: white; }
+        .btn-del:disabled { opacity: 0.45; cursor: not-allowed; }
 
         /* SEAT MAP ADMIN */
         .seat-row-container { display: flex; justify-content: center; margin-bottom: 5px; gap: 5px; }
@@ -595,8 +596,12 @@
             if (res && res.ok) {
                 const types = await res.json();
                 document.getElementById("seat-types-list").innerHTML = types.map(t => 
-                    `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #444;">
-                        <span>${t.name}</span><span style="color:#2ED573">+${t.surcharge_rate.toLocaleString()} đ</span>
+                    `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed #444;">
+                        <div>
+                            <div style="font-weight:bold;">${t.name}</div>
+                            <div style="color:#2ED573; font-size:13px;">+${Number(t.surcharge_rate).toLocaleString()} đ</div>
+                        </div>
+                        <button class="btn-sm btn-del" onclick="deleteSeatType(${t.seat_type_id}, '${String(t.name).replace(/'/g, "\\'")}')">Xóa</button>
                     </div>`
                 ).join("");
                 document.getElementById("seat-type-select").innerHTML = types.map(t => `<option value="${t.seat_type_id}">${t.name}</option>`).join("");
@@ -611,7 +616,27 @@
 
             const payload = { name: document.getElementById("st-name").value, surcharge_rate: surcharge };
             const res = await secureFetch(`${API_MANAGE}/seat-types`, { method: "POST", body: JSON.stringify(payload) });
-            if(res && res.ok) loadSeatConfigData();
+            if(res && res.ok) {
+                document.getElementById("st-name").value = "";
+                document.getElementById("st-price").value = "";
+                loadSeatConfigData();
+            }
+        }
+
+        async function deleteSeatType(id, name) {
+            if(!confirm(`Xác nhận xóa loại ghế "${name}"?`)) return;
+            const res = await secureFetch(`${API_MANAGE}/seat-types/${id}`, { method: "DELETE" });
+            if(!res) return;
+
+            if(res.ok) {
+                const data = await res.json();
+                alert(data.message);
+                loadSeatConfigData();
+                return;
+            }
+
+            const error = await res.json().catch(() => ({ detail: "Không thể xóa loại ghế." }));
+            alert(error.detail || "Không thể xóa loại ghế.");
         }
 
         async function loadScreensForSeat(cinemaId) {
