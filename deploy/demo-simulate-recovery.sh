@@ -22,24 +22,31 @@ if [[ -z "$SERVICE_NAME" ]]; then
   usage
 fi
 
-container_id="$(compose ps -q "$SERVICE_NAME")"
-if [[ -z "$container_id" ]]; then
+initial_container_id="$(compose ps -q "$SERVICE_NAME")"
+if [[ -z "$initial_container_id" ]]; then
   echo "Could not find a running container for service: $SERVICE_NAME" >&2
   compose ps
   exit 1
 fi
 
-restart_count_before="$(docker inspect -f '{{.RestartCount}}' "$container_id")"
+restart_count_before="$(docker inspect -f '{{.RestartCount}}' "$initial_container_id")"
 
-echo "Killing container ${container_id} for service ${SERVICE_NAME}"
-docker kill "$container_id" > /dev/null
+echo "Crashing PID 1 inside container ${initial_container_id} for service ${SERVICE_NAME}"
+docker exec "$initial_container_id" sh -c 'kill -9 1' > /dev/null 2>&1 || true
 
 deadline=$((SECONDS + TIMEOUT_SECONDS))
 while (( SECONDS < deadline )); do
-  running="$(docker inspect -f '{{.State.Running}}' "$container_id" 2>/dev/null || echo false)"
-  restart_count_now="$(docker inspect -f '{{.RestartCount}}' "$container_id" 2>/dev/null || echo 0)"
+  current_container_id="$(compose ps -q "$SERVICE_NAME")"
 
-  if [[ "$running" == "true" && "$restart_count_now" -gt "$restart_count_before" ]]; then
+  if [[ -z "$current_container_id" ]]; then
+    sleep 3
+    continue
+  fi
+
+  running="$(docker inspect -f '{{.State.Running}}' "$current_container_id" 2>/dev/null || echo false)"
+  restart_count_now="$(docker inspect -f '{{.RestartCount}}' "$current_container_id" 2>/dev/null || echo 0)"
+
+  if [[ "$running" == "true" && ( "$current_container_id" != "$initial_container_id" || "$restart_count_now" -gt "$restart_count_before" ) ]]; then
     echo "Service ${SERVICE_NAME} restarted successfully."
     compose ps "$SERVICE_NAME"
 
