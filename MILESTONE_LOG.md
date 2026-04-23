@@ -129,3 +129,12 @@ Copy this template for every new milestone:
 - Verification performed: confirmed Docker Desktop daemon is available locally; confirmed `docker compose -f deploy/docker-compose.prod.yml --env-file <temp-env> config` succeeds locally; confirmed all current GHCR app images pull locally; confirmed GitHub Actions run `24791710334` completed successfully through `deploy-gate`; confirmed the EC2 stack now runs `ghcr.io/long-d176/mbs-final-*` image tags; confirmed public HTTPS app access still returns `200`; confirmed Grafana health remains healthy; confirmed Prometheus remains ready with `prometheus`, `node-exporter`, and `cadvisor` targets `up`
 - Remaining blockers: GitHub Actions secrets are still missing, so the hosted `deploy-production` job is skipped instead of executing; optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
 - Next recommended step: add the required GitHub Actions secrets and rerun the workflow so the automated `deploy-production` job executes end-to-end on top of the now-validated GHCR stack
+
+## [2026-04-23] Manual workflow rerun support added for final deploy step
+
+- Summary: Added `workflow_dispatch`, concurrency control, and post-deploy HTTPS verification to the GitHub Actions pipeline so the team can trigger the final production deployment manually after secrets are configured without needing an extra code change commit.
+- Rubric areas affected: CI, CD, deployment readiness, demo readiness
+- Files touched: `.github/workflows/ci-cd.yml`, `docs/PRODUCTION_CHECKLIST.md`, `AGENT.md`, `HANDOFF.md`, `MILESTONE_LOG.md`
+- Verification performed: reviewed the updated workflow conditions to confirm image publishing now runs for both `push` and manual workflow dispatch, confirmed deploy jobs remain gated to `main`, and confirmed the checklist now tells the team to use GitHub's **Run workflow** action after secrets are added
+- Remaining blockers: GitHub Actions secrets are still not configured, so the automated `deploy-production` path still cannot be demonstrated end-to-end; optional Terraform drift and optional Ansible remain open; demo/report evidence has not been collected yet
+- Next recommended step: add the required GitHub Actions secrets in GitHub, use **Run workflow** on the `CI-CD` workflow, and verify the hosted deploy job completes successfully

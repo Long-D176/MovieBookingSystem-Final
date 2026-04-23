@@ -258,6 +258,7 @@ The following improvements have already been applied in the repository:
 - Updated Python service dependencies to resolve the latest local image build and Trivy scan blockers reproduced from GitHub Actions
 - Confirmed the latest GitHub Actions CI run is green through `deploy-gate`
 - Switched the live EC2 stack from the source-built fallback deployment to the GHCR image-based deployment using `deploy/docker-compose.prod.yml`
+- Added manual `workflow_dispatch` support plus post-deploy HTTPS verification to the CI/CD workflow
 
 ### Files That Matter First
 
@@ -350,7 +351,7 @@ The following checks have already succeeded:
 If the user asks to continue without changing strategy, do the following in order:
 
 1. configure GitHub Actions secrets for SSH, app envs, and domains
-2. rerun the workflow so `deploy-production` executes instead of being skipped
+2. use GitHub Actions **Run workflow** on `CI-CD` so `deploy-production` executes instead of being skipped
 3. verify the automated deployment updates the live EC2 stack to the matching GitHub SHA
 4. optionally apply the current in-place Terraform drift if the team wants AWS tags and SG rule descriptions normalized
 5. capture evidence screenshots and logs for the report and demo

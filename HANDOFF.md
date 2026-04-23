@@ -66,6 +66,7 @@ Important:
 - Python service requirements were upgraded to resolve the latest local image build and Trivy scan blockers found in GitHub Actions
 - the latest GitHub Actions CI run completed successfully for validate plus all build-and-publish jobs
 - the EC2 instance was updated from the source-built fallback stack to the GHCR image-based production stack using `deploy/docker-compose.prod.yml`
+- the GitHub Actions workflow now supports manual `workflow_dispatch` reruns and post-deploy HTTPS verification
 
 ## What Was Verified
 
@@ -126,7 +127,7 @@ Important:
 If continuing the project with no further user clarification, do this next:
 
 1. add GitHub Actions secrets for SSH, database, SMTP, JWT, and domains
-2. rerun the CI/CD workflow after secrets are configured so `deploy-production` executes instead of being skipped
+2. manually run the CI/CD workflow after secrets are configured so `deploy-production` executes instead of being skipped
 3. optionally apply the remaining in-place Terraform drift
 4. capture evidence screenshots and logs for the demo/report
 5. optionally add Ansible if needed for score coverage
