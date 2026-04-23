@@ -73,6 +73,7 @@ Important:
 - the identity service now bootstraps an admin account automatically from optional bootstrap env vars, falling back to `SMTP_EMAIL` plus `GRAFANA_ADMIN_PASSWORD`
 - GitHub Actions run `24811149792` completed successfully and deployed the admin-access fix to production
 - demo helper scripts were added for production preflight checks and failure-recovery simulation
+- the demo helper scripts were deployed to production and verified successfully on the EC2 host
 
 ## What Was Verified
 
@@ -120,6 +121,8 @@ Important:
 - the production database now contains a verified `ADMIN` user created by bootstrap logic
 - logging in through the public identity endpoint with the bootstrap admin credentials returns a token carrying the `ADMIN` role
 - `deploy/demo-preflight.sh` and `deploy/demo-simulate-recovery.sh` pass Bash syntax validation locally
+- `bash deploy/demo-preflight.sh` now runs successfully on the EC2 host against the live production stack
+- `bash deploy/demo-simulate-recovery.sh catalog_service https://tungtungtungtungsahur.site` now succeeds on the EC2 host and restores the killed service
 
 ## What Is Still Missing
 
@@ -140,11 +143,10 @@ Important:
 
 If continuing the project with no further user clarification, do this next:
 
-1. push and deploy the new demo helper scripts if they are not yet live on the EC2 host
-2. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
-3. rehearse the final demo flow, including admin dashboard login, Adminer access, and failure recovery
-4. optionally apply the remaining in-place Terraform drift
-5. optionally add Ansible if needed for score coverage
+1. capture evidence screenshots and logs for the demo/report while the automated deploy path is working
+2. rehearse the final demo flow, including admin dashboard login, Adminer access, and failure recovery
+3. optionally apply the remaining in-place Terraform drift
+4. optionally add Ansible if needed for score coverage
 
 ## Important Files
 
