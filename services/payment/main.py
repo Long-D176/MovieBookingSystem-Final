@@ -30,7 +30,7 @@ models.Base.metadata.create_all(bind=engine)
 
 BOOKING_SERVICE_URL = os.getenv("BOOKING_SERVICE_URL", "http://booking_service:8004")
 
-# Cấu hình SMTP 
+
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_SERVER = "smtp.gmail.com"
@@ -77,7 +77,7 @@ def send_email_via_smtp(to_email: str, subject: str, html_body: str, barcode_dat
         print(f"Failed to send email: {e}")
         return False
 
-# --- SCHEMAS ---
+
 class PaymentRequest(BaseModel):
     booking_id: int
     amount: float
@@ -98,7 +98,7 @@ class TicketEmailRequest(BaseModel):
     amount: float
     qr_code: str 
 
-# --- API ---
+
 
 @app.get("/")
 def health_check():

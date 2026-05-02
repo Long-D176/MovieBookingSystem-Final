@@ -72,7 +72,7 @@ ensure_bootstrap_admin()
 
 OTP_SERVICE_URL = os.getenv("OTP_SERVICE_URL", "http://otp_service:8002")
 
-# --- SCHEMAS ---
+
 class UserRegister(BaseModel):
     email: str
     password: str
@@ -97,7 +97,7 @@ class ResetPasswordRequest(BaseModel):
     otp_code: str
     new_password: str
 
-# --- API ENDPOINTS ---
+
 
 @app.post("/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
@@ -113,7 +113,6 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     
-    # Gọi OTP Service
     try:
         httpx.post(f"{OTP_SERVICE_URL}/generate", json={"identifier": user.email}, timeout=5.0)
     except:
@@ -141,7 +140,6 @@ def resend_otp(req: ResendOTPRequest, db: Session = Depends(get_db)):
 
 @app.post("/verify")
 def verify_account(req: VerifyAccount, db: Session = Depends(get_db)):
-    # 1. Validate OTP
     try:
         response = httpx.post(f"{OTP_SERVICE_URL}/validate", json={"identifier": req.email, "otp_code": req.otp_code})
         if response.status_code != 200:
@@ -151,7 +149,6 @@ def verify_account(req: VerifyAccount, db: Session = Depends(get_db)):
     except:
         raise HTTPException(status_code=500, detail="Lỗi kết nối OTP Service")
 
-    # 2. Update User
     user = db.query(models.User).filter(models.User.email == req.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -167,7 +164,6 @@ def login(req: UserLogin, db: Session = Depends(get_db)):
     if not user or not utils.verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=400, detail="Sai email hoặc mật khẩu")
     
-
     if not user.is_verified:
         raise HTTPException(status_code=403, detail="Tài khoản chưa kích hoạt")
         

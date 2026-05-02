@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, D
 from sqlalchemy.orm import relationship
 from database import Base
 
-# --- CÁC BẢNG CATALOG  ---
+
 class Cinema(Base):
     __tablename__ = "cinemas"
     cinema_id = Column(Integer, primary_key=True)
@@ -36,7 +36,7 @@ class Seat(Base):
     row_code = Column(String(5))
     seat_number = Column(Integer)
 
-# --- CÁC BẢNG BOOKING ---
+
 class Booking(Base):
     __tablename__ = "bookings"
     

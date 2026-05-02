@@ -23,7 +23,7 @@ app.add_middleware(
 
 models.Base.metadata.create_all(bind=engine)
 
-# --- SECURITY ---
+
 SECRET_KEY = os.getenv("JWT_SECRET", "change-this-in-production")
 ALGORITHM = "HS256"
 
@@ -36,11 +36,9 @@ def check_admin_role(credentials: HTTPAuthorizationCredentials = Depends(securit
     """
     token = credentials.credentials
     try:
-        # Giải mã Token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         role = payload.get("role")
         
-        # Kiểm tra quyền
         if role not in ["ADMIN", "MANAGER"]:
             raise HTTPException(status_code=403, detail="Không có quyền truy cập! Yêu cầu quyền ADMIN.")
             
@@ -48,7 +46,7 @@ def check_admin_role(credentials: HTTPAuthorizationCredentials = Depends(securit
     except:
         raise HTTPException(status_code=401, detail="Token không hợp lệ hoặc đã hết hạn.")
 
-# --- SCHEMAS ---
+
 class MovieCreate(BaseModel):
     title: str
     duration_minutes: int
@@ -102,7 +100,7 @@ class ConcessionCreate(BaseModel):
     name: str
     price: float
 
-# --- API ---
+
 
 @app.get("/screens")
 def get_all_screens(user=Depends(check_admin_role), db: Session = Depends(get_db)):
@@ -176,7 +174,7 @@ def add_showtime_batch(st: ShowtimeBatchCreate, user=Depends(check_admin_role), 
     db.commit()
     return {"status": "success", "message": f"Đã tạo {count} suất chiếu"}
 
-# --- API GHẾ ---
+
 @app.get("/seat-types")
 def get_seat_types(user=Depends(check_admin_role), db: Session = Depends(get_db)):
     return db.query(models.SeatType).all()
@@ -255,7 +253,6 @@ def update_seats_batch(batch: SeatBatchUpdate, user=Depends(check_admin_role), d
 def get_screen_seats(screen_id: int, user=Depends(check_admin_role), db: Session = Depends(get_db)):
     return db.query(models.Seat).filter(models.Seat.screen_id == screen_id).all()
 
-# --- API BẮP NƯỚC ---
 @app.get("/concessions")
 def get_all_concessions(user=Depends(check_admin_role), db: Session = Depends(get_db)):
     return db.query(models.ConcessionItem).all()
@@ -276,7 +273,7 @@ def delete_concession(item_id: int, user=Depends(check_admin_role), db: Session 
     db.commit()
     return {"status": "success", "message": "Đã xóa món ăn"}
 
-# --- BÁO CÁO DOANH THU ---
+
 @app.get("/reports/revenue")
 def get_revenue_report(user=Depends(check_admin_role), db: Session = Depends(get_db)):
     total_revenue = db.query(func.sum(models.Booking.total_amount))\
