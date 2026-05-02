@@ -141,4 +141,4 @@ If the container is now run, just try again in a few minute.
         -   Press `Ctrl + F5` (or `Cmd + Shift + R`) in your browser to perform a hard refresh and clear the cache.
 
 ---
-Developed by Nguyen Ba Hung, Chau Pham Tuan Kiet, Nguyen Bao Long - Final Project SOA 2025
+Developed by Nguyen Ba Hung and Nguyen Bao Long - final project DevOps 2026
