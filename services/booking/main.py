@@ -260,10 +260,13 @@ def confirm_booking(booking_id: int, db: Session = Depends(get_db)):
         tickets = db.query(models.Ticket).filter(models.Ticket.booking_id == booking_id).all()
         
         seat_list = []
+        movie_title = "Unknown"
         try:
             showtime_res = httpx.get(f"{CATALOG_SERVICE_URL}/showtimes/{booking.showtime_id}")
             if showtime_res.status_code == 200:
-                screen_id = showtime_res.json().get('screen_id')
+                showtime_data = showtime_res.json()
+                movie_title = showtime_data.get('movie_title', 'Unknown')
+                screen_id = showtime_data.get('screen_id')
                 seats_res = httpx.get(f"{CATALOG_SERVICE_URL}/screens/{screen_id}/seats")
                 if seats_res.status_code == 200:
                     seat_map = {s['seat_id']: f"{s['row_code']}{s['seat_number']}" for s in seats_res.json()}
@@ -300,7 +303,7 @@ def confirm_booking(booking_id: int, db: Session = Depends(get_db)):
         payload = {
             "email": user_email,
             "booking_id": booking.booking_id,
-            "movie_title": "Godzilla x Kong", 
+            "movie_title": movie_title,
             "start_time": str(booking.booking_date),
             "seats": seat_list,
             "concessions_text": snack_str,
@@ -308,6 +311,7 @@ def confirm_booking(booking_id: int, db: Session = Depends(get_db)):
             "qr_code": qr_code_sample 
         }
         httpx.post(f"{PAYMENT_SERVICE_URL}/send-ticket", json=payload, timeout=5.0)
+
 
     except Exception as e:
         print(f"Error sending ticket: {e}")
