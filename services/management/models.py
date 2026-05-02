@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 import datetime
 
-# --- CÁC BẢNG RẠP & PHÒNG ---
+
 class Cinema(Base):
     __tablename__ = "cinemas"
     cinema_id = Column(Integer, primary_key=True, index=True)
@@ -18,7 +18,6 @@ class Screen(Base):
     total_seats = Column(Integer)
     cinema = relationship("Cinema")
 
-# --- CÁC BẢNG PHIM & LỊCH CHIẾU ---
 class Movie(Base):
     __tablename__ = "movies"
     movie_id = Column(Integer, primary_key=True, index=True)
@@ -43,7 +42,7 @@ class Booking(Base):
     showtime_id = Column(Integer, ForeignKey("showtimes.showtime_id"))
     showtime = relationship("Showtime")
 
-# --- CÁC BẢNG GHẾ  ---
+
 class SeatType(Base):
     __tablename__ = "seat_types"
     seat_type_id = Column(Integer, primary_key=True, index=True)
