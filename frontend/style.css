@@ -1,15 +1,13 @@
-/* --- 1. DESIGN SYSTEM & VARIABLES --- */
 :root {
-    --bg-main: #121212;       
-    --bg-surface: #1E1E2E;    
+    --bg-main: #121212;
+    --bg-surface: #1E1E2E;
     --bg-hover: #2A2A3C;
-    --accent: #FFC107;        
+    --accent: #FFC107;
     --accent-hover: #FFD54F;
     --text-main: #FFFFFF;
     --text-sub: #B3B3B3;
     --danger: #FF4757;
     --success: #2ED573;
-
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
@@ -28,7 +26,6 @@ body {
 a { text-decoration: none; color: inherit; transition: 0.3s; }
 ul { list-style: none; padding: 0; margin: 0; }
 
-/* --- 2. LAYOUT & UTILITIES --- */
 .container {
     max-width: var(--container-width);
     margin: 0 auto;
@@ -67,7 +64,6 @@ ul { list-style: none; padding: 0; margin: 0; }
     color: #000;
 }
 
-/* --- 3. HEADER --- */
 .navbar {
     background-color: rgba(18, 18, 18, 0.95);
     backdrop-filter: blur(10px);
@@ -99,11 +95,14 @@ ul { list-style: none; padding: 0; margin: 0; }
     color: white;
     width: 300px;
     outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.search-bar input:focus { border-color: var(--accent); }
+.search-bar input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.12);
+}
 
-/* --- 4. HERO SECTION  --- */
 .hero {
     height: 60vh;
     background: url('https://image.tmdb.org/t/p/original/1XDDXPXGiL8id7MrUxK36ke7gkX.jpg') no-repeat center center/cover;
@@ -139,7 +138,6 @@ ul { list-style: none; padding: 0; margin: 0; }
 .hero-title { font-size: 48px; margin: 10px 0; line-height: 1.1; }
 .hero-meta { color: var(--text-sub); margin-bottom: 20px; font-size: 14px; }
 
-/* --- 5. MOVIE GRID --- */
 .section-title {
     font-size: 24px;
     margin-bottom: 20px;
@@ -189,7 +187,7 @@ ul { list-style: none; padding: 0; margin: 0; }
 
 .poster-wrapper {
     position: relative;
-    padding-top: 150%; 
+    padding-top: 150%;
     overflow: hidden;
 }
 
@@ -204,7 +202,6 @@ ul { list-style: none; padding: 0; margin: 0; }
 .movie-meta { font-size: 12px; color: var(--text-sub); display: flex; justify-content: space-between; }
 .rating { color: var(--accent); font-weight: bold; }
 
-/* --- 6. BOOKING PAGE --- */
 .booking-header {
     text-align: center;
     margin-bottom: 40px;
@@ -276,21 +273,62 @@ ul { list-style: none; padding: 0; margin: 0; }
 .seat {
     height: 35px;
     background: #3A3A50;
-    border-radius: 8px 8px 4px 4px; 
+    border-radius: 8px 8px 4px 4px;
     cursor: pointer;
     transition: 0.2s;
     position: relative;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #aaa;
 }
 
 .seat:hover { background: #505068; }
-.seat.selected { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+.seat.selected {
+    background: var(--accent) !important;
+    color: black !important;
+    box-shadow: 0 0 10px var(--accent);
+    border-color: var(--accent);
+    font-weight: bold;
+}
+
 .seat.occupied {
-    background-color: #444 !important; 
-    color: #666;                      
-    cursor: not-allowed;              
-    pointer-events: none;              
-    border: 1px solid #555;
-    box-shadow: none;
+    background: #444 !important;
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    color: #666;
+}
+
+.seat.type-vip {
+    border-color: #FFC107;
+    color: #FFC107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.seat.type-couple {
+    border-color: #E056FD;
+    color: #E056FD;
+    background: rgba(224, 86, 253, 0.1);
+}
+
+.seat.broken {
+    background: #000 !important;
+    border: 1px dashed #333 !important;
+    color: #333 !important;
+    cursor: not-allowed;
+    pointer-events: none;
+    text-decoration: line-through;
+}
+
+.seat:focus-visible,
+.btn:focus-visible,
+.tabs button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .legend {
@@ -309,7 +347,9 @@ ul { list-style: none; padding: 0; margin: 0; }
     margin-right: 8px;
 }
 
-/* Snacks */
+.legend-item span.vip { border: 1px solid #FFC107; background: rgba(255, 193, 7, 0.1); }
+.legend-item span.couple { border: 1px solid #E056FD; background: rgba(224, 86, 253, 0.1); }
+
 .snack-card {
     background: var(--bg-surface);
     padding: 20px;
@@ -322,7 +362,6 @@ ul { list-style: none; padding: 0; margin: 0; }
 .snack-name { font-weight: bold; margin-bottom: 5px; }
 .snack-price { color: var(--accent); }
 
-/* --- 7. AUTH PAGES --- */
 .auth-box {
     background: var(--bg-surface);
     padding: 40px;
@@ -345,65 +384,3 @@ ul { list-style: none; padding: 0; margin: 0; }
     border-color: var(--accent);
     outline: none;
 }
-
-.seat {
-    height: 35px;
-    background: #3A3A50; 
-    border-radius: 8px 8px 4px 4px;
-    cursor: pointer;
-    transition: 0.2s;
-    position: relative;
-    border: 1px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: #aaa;
-}
-
-.seat:hover { background: #505068; }
-
-.seat.selected { 
-    background: var(--accent) !important; 
-    color: black !important; 
-    box-shadow: 0 0 10px var(--accent);
-    border-color: var(--accent);
-    font-weight: bold;
-}
-
-.seat.occupied { 
-    background: #444 !important; 
-    opacity: 0.5; 
-    cursor: not-allowed; 
-    pointer-events: none; 
-    color: #666;
-}
-
-
-
-/* VIP */
-.seat.type-vip {
-    border-color: #FFC107;
-    color: #FFC107;
-    background: rgba(255, 193, 7, 0.1);
-}
-
-/* COUPLE*/
-.seat.type-couple {
-    border-color: #E056FD;
-    color: #E056FD;
-    background: rgba(224, 86, 253, 0.1);
-}
-
-/* BROKEN*/
-.seat.broken {
-    background: #000 !important;
-    border: 1px dashed #333 !important;
-    color: #333 !important;
-    cursor: not-allowed;
-    pointer-events: none;
-    text-decoration: line-through;
-}
-
-.legend-item span.vip { border: 1px solid #FFC107; background: rgba(255, 193, 7, 0.1); }
-.legend-item span.couple { border: 1px solid #E056FD; background: rgba(224, 86, 253, 0.1); }

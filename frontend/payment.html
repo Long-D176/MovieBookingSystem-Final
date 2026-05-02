@@ -138,28 +138,6 @@
         </div>
     </div>
 
-    <!-- Script logic -->
     <script src="app.js"></script>
-    <script>
-        if (typeof loadPaymentPage === "function") {
-            loadPaymentPage();
-        }
-
-        (function() {
-            const params = new URLSearchParams(window.location.search);
-            const snacks = params.get("snacks");
-            
-            if (snacks && snacks.trim() !== "") {
-                const snackRow = document.getElementById("row-snacks");
-                const snackValue = document.getElementById("inv-snacks");
-                
-                if (snackRow && snackValue) {
-                    snackValue.innerText = decodeURIComponent(snacks);
-                    snackRow.style.display = "flex";
-                }
-            }
-        })();
-        
-    </script>
 </body>
 </html>
