@@ -1,0 +1,33 @@
+Terraform Evidence - MovieBookingSystem
+Generated: 2026-05-02 16:24:00
+Working dir: C:\MovieBookingSystem\infra\terraform
+
+Terraform state resources:
+  - data.aws_ami.ubuntu_2404
+  - aws_eip.app
+  - aws_instance.app
+  - aws_security_group.moviebooking_final
+
+1) EC2 Instance: aws_instance.app
+  id                                   = "i-0584cd71639aa7d4e"
+  instance_state                       = "running"
+  instance_type                        = "t3.large"
+  public_ip                            = "54.160.170.73"
+  public_dns                           = "ec2-54-160-170-73.compute-1.amazonaws.com"
+  key_name                             = "moviebooking-final-key"
+  subnet_id                            = "subnet-0ec8d6973fe1a731e"
+
+2) Elastic IP: aws_eip.app
+  id                       = "eipalloc-0bdee4b3cda05bc3c"
+  allocation_id            = "eipalloc-0bdee4b3cda05bc3c"
+  public_ip                = "54.160.170.73"
+  instance                 = "i-0584cd71639aa7d4e"
+  domain                   = "vpc"
+
+3) Security Group: aws_security_group.moviebooking_final
+  id          = "sg-0ac1721a14f487f88"
+  name        = "moviebooking-final-sg"
+  description = "launch-wizard-7 created 2026-04-22T14:07:54.819Z"
+  vpc_id      = "vpc-0c88f0fa0af2e9ab4"
+
+Proof: Terraform imports/manages the production EC2 instance, Elastic IP, and Security Group.

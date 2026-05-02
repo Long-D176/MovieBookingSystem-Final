@@ -1,0 +1,388 @@
+% Compile this report on Overleaf with XeLaTeX.
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{Inconsolata}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{tabularx}
+
+\graphicspath{{assets/}{assets/evidence/}}
+\onehalfspacing
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black,
+  pdftitle={Production-Grade CI/CD System for CineWorld Movie Booking System},
+  pdfauthor={Nguyen Bao Long and Nguyen Ba Hung}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{CineWorld Movie Booking System}
+\rhead{Final Exam Project}
+\cfoot{\thepage}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\Huge}
+  {Chapter \thechapter}
+  {10pt}
+  {\Huge}
+
+\newcommand{\evidencefig}[3]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{#1}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+
+\newcommand{\smallfig}[3]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{#1}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{0.5cm}
+  \includegraphics[width=0.22\textwidth]{logo.png}\par
+  \vspace{1.2cm}
+  {\Large \textbf{Software Deployment, Operations \& Maintenance}\par}
+  \vspace{0.5cm}
+  {\huge \textbf{Final Exam Project Report}\par}
+  \vspace{0.6cm}
+  {\LARGE \textbf{Production-Grade CI/CD System for CineWorld Movie Booking System}\par}
+  \vspace{1.2cm}
+  {\large Architecture Tier: \textbf{Tier 5 -- Kubernetes-Based Architecture using k3s}\par}
+  \vspace{1.2cm}
+  \begin{tabular}{ll}
+    \textbf{Team member} & \textbf{Student ID} \\
+    Nguyen Bao Long & 523K0014 \\
+    Nguyen Ba Hung & 523K0006 \\
+  \end{tabular}
+  \vfill
+  {\large Public application: \url{https://tungtungtungtungsahur.site}\par}
+  {\large Monitoring dashboard: \url{https://grafana.tungtungtungtungsahur.site}\par}
+  \vspace{0.6cm}
+  {\large \today\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\section*{Abstract}
+This report presents the design, implementation, deployment, and operational validation of a production-grade CI/CD system for the CineWorld Movie Booking System. The system is a microservices-based web application deployed on an AWS Ubuntu server using k3s Kubernetes. The project includes public HTTPS access, automated GitHub Actions CI/CD, container image publishing to GHCR, Kubernetes deployment manifests, Prometheus and Grafana monitoring, and a failure recovery demonstration. The report follows the official five-chapter structure required by the final exam specification and integrates the evidence captured during production validation.
+
+\section*{Project Team and Work Distribution}
+The workload was divided evenly between two team members. Both members participated in system validation, report preparation, evidence collection, and final demo rehearsal.
+
+\begin{table}[H]
+\centering
+\caption{Equal work distribution between team members}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth} p{0.18\textwidth} X p{0.12\textwidth}}
+\toprule
+\textbf{Member} & \textbf{Student ID} & \textbf{Main responsibilities} & \textbf{Share} \\
+\midrule
+Nguyen Bao Long & 523K0014 & Infrastructure planning, AWS EC2 validation, Elastic IP and DNS evidence, HTTPS evidence, Terraform state evidence, Kubernetes deployment verification, and report/evidence organization. & 50\% \\
+\midrule
+Nguyen Ba Hung & 523K0006 & GitHub Actions CI/CD validation, GHCR image evidence, Trivy and build verification, Prometheus/Grafana monitoring evidence, demo preflight, failure recovery validation, and report/demo scripting. & 50\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\tableofcontents
+\listoffigures
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Overview \& System Architecture}
+
+\section{Project Context}
+CineWorld is a movie booking web application developed as a realistic multi-service system. It supports customer movie browsing, authentication, seat selection, ticket booking, payment simulation, e-ticket delivery, booking history, an administrative dashboard, and a staff ticket scanner. For the final exam, the main objective was not only to run the application, but to transform it into a production-style delivery system with automated CI/CD, cloud deployment, HTTPS, monitoring, and operational recovery evidence.
+
+The system is deployed publicly at:
+
+\begin{itemize}[leftmargin=*]
+  \item Application URL: \url{https://tungtungtungtungsahur.site}
+  \item Grafana URL: \url{https://grafana.tungtungtungtungsahur.site}
+  \item Container registry namespace: \texttt{ghcr.io/long-d176}
+  \item Production image prefix: \texttt{mbs-final}
+\end{itemize}
+
+\section{Selected Architecture Tier}
+The selected deployment model is \textbf{Tier 5 -- Kubernetes-Based Architecture}. The production environment uses \textbf{k3s}, a lightweight Kubernetes distribution suitable for a single cloud VM while still providing Kubernetes primitives such as Deployments, Services, ConfigMaps, Secrets, PersistentVolumeClaims, and self-healing workloads.
+
+The live deployment uses a single AWS EC2 Ubuntu host running k3s. Application and monitoring workloads run inside the Kubernetes namespace \texttt{moviebooking}. Public HTTPS traffic is terminated by host-level Nginx and routed to Kubernetes NodePort services. This design was selected because the AWS Learner Lab environment is limited, but it still allows the team to demonstrate Kubernetes orchestration, self-healing, production routing, CI/CD automation, and monitoring.
+
+\section{Application Service Decomposition}
+The backend is separated into independent FastAPI services. The frontend is served by Nginx and routes browser API calls through reverse-proxy paths such as \texttt{/api/catalog}, \texttt{/api/identity}, and \texttt{/api/booking}.
+
+\begin{longtable}{p{0.24\textwidth} p{0.18\textwidth} p{0.48\textwidth}}
+\caption{CineWorld microservice architecture}\\
+\toprule
+\textbf{Component} & \textbf{Port} & \textbf{Responsibility} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Component} & \textbf{Port} & \textbf{Responsibility} \\
+\midrule
+\endhead
+Frontend & 80 & Static web UI, customer pages, admin dashboard, staff scanner, and reverse proxy routes. \\
+Catalog service & 8001 & Movies, cinemas, screens, showtimes, seats, seat types, and concessions. \\
+OTP service & 8002 & OTP generation, OTP validation, and email delivery for verification flows. \\
+Identity service & 8003 & Registration, login, JWT generation, password reset, and bootstrap admin setup. \\
+Booking service & 8004 & Booking creation, seat holding, booking confirmation, cancellation, and user booking history. \\
+Payment service & 8005 & Mock payment, refund transaction records, and e-ticket email delivery. \\
+Redemption service & 8006 & Ticket validation and check-in for staff scanning. \\
+Management service & 8007 & Protected administrative APIs for movies, screens, seats, concessions, schedules, and revenue reports. \\
+Scheduler service & N/A & Background cancellation of expired pending bookings. \\
+MySQL & 3306 & Persistent relational storage for application data. \\
+\bottomrule
+\end{longtable}
+
+\section{Architecture and Workflow Diagram}
+Figure~\ref{fig:delivery-diagram} shows the overall final-project delivery workflow used to guide the implementation from architecture selection to monitoring and failure recovery.
+
+\evidencefig{Diagram.png}{Final project implementation workflow and delivery path}{fig:delivery-diagram}
+
+\section{Production Application Evidence}
+The public application is reachable via HTTPS and loads the CineWorld frontend through the production domain.
+
+\evidencefig{01-aws-ec2-instance.png}{AWS EC2 production instance running in the cloud}{fig:aws-instance}
+\evidencefig{04-public-app-https.png}{CineWorld public application accessible through HTTPS}{fig:public-app}
+
+\section{Rubric Alignment Summary}
+\begin{table}[H]
+\centering
+\caption{High-level alignment with the final exam rubric}
+\begin{tabularx}{\textwidth}{p{0.24\textwidth} X p{0.18\textwidth}}
+\toprule
+\textbf{Rubric area} & \textbf{Implemented evidence} & \textbf{Expected result} \\
+\midrule
+Infrastructure & AWS EC2, Elastic IP, DNS, HTTPS, Terraform state, and server automation scripts. & Strong partial/full evidence \\
+Architecture & k3s Kubernetes with Deployments, Services, Secrets, ConfigMaps, PVCs, NodePorts, and self-healing demo. & Tier 5 target \\
+CI/CD & GitHub Actions pipeline with lint, cache, build, Trivy scans, GHCR image push, and production deployment. & Production-grade \\
+Monitoring & Prometheus, Grafana, node-exporter, cAdvisor, CPU/memory/container panels. & Full requirement \\
+Demo & Preflight and failure recovery scripts prepared and validated. & Must be shown live/video \\
+Report & Five required chapters with embedded screenshots and design justification. & This document \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{Infrastructure Provisioning}
+
+\section{Cloud Provider and Server Environment}
+The production system runs on AWS in the \texttt{us-east-1} region. A public Ubuntu EC2 instance named \texttt{moviebooking-final-prod} was provisioned and associated with an Elastic IP address. This satisfies the requirement that the system must run on a real cloud provider and remain reachable through a public domain.
+
+\smallfig{02-elastic-ip-association.png}{Elastic IP association for the production EC2 instance}{fig:eip}
+\smallfig{03-security-group-inbound-rules.png}{Security group inbound rules for SSH, HTTP, and HTTPS}{fig:security-group}
+
+\section{DNS and HTTPS Configuration}
+The registered domain \texttt{tungtungtungtungsahur.site} points to the production Elastic IP address. DNS records were configured through the domain management interface. HTTPS was enabled using a valid certificate authority, and the application is accessed through the HTTPS domain rather than through raw IP addresses or local ports.
+
+\smallfig{18-dns-records.png}{DNS records pointing the domain to the production Elastic IP}{fig:dns}
+\smallfig{05-app-https-certificate.png}{Valid HTTPS certificate for the production application domain}{fig:https-cert}
+
+\section{Infrastructure as Code and Automation}
+The project includes Terraform files under \texttt{infra/terraform}. The live EC2 instance, Elastic IP, and security group were imported into Terraform state, giving the team reproducible visibility over the core cloud resources. Server setup and production routing are supported by shell scripts under \texttt{deploy/}, including Docker bootstrap, Nginx setup, Certbot setup, k3s installation, Kubernetes deployment, and Nginx cutover scripts.
+
+The infrastructure is not presented as a fully idempotent Terraform-and-Ansible stack. Instead, it is a practical hybrid approach: the cloud resources are tracked through Terraform, while host configuration and production deployment are automated through scripts and GitHub Actions. This distinction is important because it accurately reflects the deployed system and avoids claiming capabilities that were not implemented.
+
+\smallfig{17-terraform-three-resources.png}{Terraform state evidence for EC2, Elastic IP, and security group resources}{fig:terraform}
+
+\section{Secret Handling}
+Production secrets such as database passwords, SMTP credentials, JWT secret values, SSH private keys, and Grafana passwords are not hard-coded in the repository. Local examples are stored as placeholder values in \texttt{.env.example} and \texttt{deploy/server.env.example}. The CI/CD pipeline uses GitHub Secrets to render a production environment file during deployment. Kubernetes Secrets are created at deployment time from those values.
+
+\section{Infrastructure Evidence Mapping}
+\begin{table}[H]
+\centering
+\caption{Infrastructure evidence used in this report}
+\begin{tabularx}{\textwidth}{p{0.32\textwidth} X}
+\toprule
+\textbf{Evidence file} & \textbf{Purpose} \\
+\midrule
+\texttt{01-aws-ec2-instance.png} & Shows the production EC2 instance running on AWS. \\
+\texttt{02-elastic-ip-association.png} & Shows Elastic IP association with the production host. \\
+\texttt{03-security-group-inbound-rules.png} & Shows network access rules for SSH, HTTP, and HTTPS. \\
+\texttt{05-app-https-certificate.png} & Shows HTTPS certificate validity for the application domain. \\
+\texttt{17-terraform-three-resources.png} & Shows Terraform-managed/imported EC2, Elastic IP, and security group resources. \\
+\texttt{18-dns-records.png} & Shows DNS records pointing the domain to the production IP. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{CI/CD Pipeline Design}
+
+\section{Pipeline Platform}
+The project uses GitHub Actions as the CI/CD platform. The workflow is defined in \texttt{.github/workflows/ci-cd.yml}. It runs automatically on pushes to the \texttt{main} branch and can also be triggered manually through \texttt{workflow\_dispatch}. Pull requests run validation and build checks without deploying to production.
+
+\section{Continuous Integration}
+The CI stage includes source checkout, Python setup, dependency caching, static analysis, syntax validation, Docker Compose validation, Kubernetes script validation, Kubernetes manifest rendering, filesystem security scanning, container image builds, image security scanning, and image publishing.
+
+The following controls are implemented:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Dependency caching}: Python dependencies are cached using GitHub Actions pip cache.
+  \item \textbf{Static analysis}: \texttt{ruff check services --select E9,F63,F7,F82}.
+  \item \textbf{Syntax validation}: \texttt{python -m compileall services}.
+  \item \textbf{Configuration validation}: \texttt{docker compose config}.
+  \item \textbf{Kubernetes validation}: Bash syntax checks and manifest rendering with \texttt{envsubst}.
+  \item \textbf{Security scanning}: Trivy filesystem and image scans fail the pipeline on High or Critical vulnerabilities.
+  \item \textbf{Image versioning}: Images are tagged with the Git commit SHA rather than relying on \texttt{latest}.
+\end{itemize}
+
+\evidencefig{08-github-actions-success.png}{Successful GitHub Actions CI/CD workflow run}{fig:actions-success}
+\evidencefig{09-ci-validate-and-trivy.png}{CI validation job including linting, syntax checks, manifest rendering, and Trivy scanning}{fig:ci-validate}
+
+\section{Container Image Build and Registry Push}
+The pipeline builds one image per deployable component and publishes the versioned images to GHCR. The image naming format is:
+
+\begin{verbatim}
+ghcr.io/long-d176/mbs-final-<component>:<git-sha>
+\end{verbatim}
+
+This image strategy satisfies the requirement for explicit artifact versioning. It also makes production deployment reproducible because the deployment job applies the exact image tag associated with the successful commit.
+
+\evidencefig{11-ghcr-image-tags.png}{GHCR package evidence showing versioned container image tags}{fig:ghcr}
+
+\section{Continuous Delivery}
+The CD stage is implemented by the \texttt{deploy-production} job. After the build matrix succeeds and deployment secrets are confirmed, the job connects to the EC2 host over SSH, uploads deployment assets, renders the production environment file, installs k3s if necessary, applies the Kubernetes manifests, cuts host Nginx over to the Kubernetes NodePorts, stops the legacy Docker Compose stack if present, and verifies the live application and Grafana endpoints.
+
+The deployment process performs the following production checks:
+
+\begin{itemize}[leftmargin=*]
+  \item Kubernetes pods are listed after deployment.
+  \item Kubernetes services and PVCs are listed after deployment.
+  \item The local application NodePort is checked.
+  \item The local Grafana NodePort is checked.
+  \item The public application HTTPS endpoint is checked.
+  \item The public Grafana HTTPS health endpoint is checked.
+\end{itemize}
+
+\evidencefig{10-cd-deploy-production-success.png}{Successful production deployment job and post-deployment verification}{fig:cd-deploy}
+
+\section{DevSecOps Controls}
+Security scanning is enforced in two places: repository-level filesystem scanning and per-image scanning after local image build. The workflow is configured to fail on High or Critical vulnerabilities. Secrets are provided through GitHub Secrets and are not printed into screenshots or committed into source control. This approach integrates security into the delivery lifecycle rather than treating it as a manual post-deployment activity.
+
+\chapter{Deployment \& Orchestration}
+
+\section{Kubernetes Deployment Model}
+The live production workload runs on k3s Kubernetes inside the \texttt{moviebooking} namespace. Application components are represented by Kubernetes Deployments. MySQL is represented by a StatefulSet with a PersistentVolumeClaim. Configuration files are injected using ConfigMaps, and sensitive runtime values are injected using Kubernetes Secrets.
+
+The Kubernetes deployment includes:
+
+\begin{itemize}[leftmargin=*]
+  \item Deployments for frontend, adminer, catalog, OTP, identity, booking, payment, redemption, management, scheduler, Prometheus, and Grafana.
+  \item Services for internal service discovery.
+  \item NodePort services for frontend and Grafana public routing.
+  \item ConfigMaps for frontend Nginx, Prometheus configuration, and Grafana provisioning.
+  \item Secrets for database credentials, SMTP credentials, JWT secret, bootstrap admin settings, and Grafana password.
+  \item PVCs for MySQL, Prometheus, and Grafana persistence.
+\end{itemize}
+
+\evidencefig{12-kubernetes-workloads.png}{Kubernetes pods, services, NodePorts, and PVCs in the moviebooking namespace}{fig:k8s-workloads}
+
+\section{External Traffic Routing}
+The frontend service is exposed through Kubernetes NodePort \texttt{30080}. Grafana is exposed through NodePort \texttt{30081}. Host-level Nginx receives HTTPS traffic for the public domains and proxies requests to those NodePorts. This design gives the system a single public HTTPS entry point while keeping backend services internal to Kubernetes service networking.
+
+The official specification recommends an Ingress Controller for Tier 5 deployments. In this implementation, the team used host-level Nginx plus NodePort because the project runs on a single AWS Learner Lab EC2 host and already had a stable HTTPS setup. The Kubernetes layer still demonstrates Deployments, Services, ConfigMaps, Secrets, persistent volumes, and self-healing behavior. This trade-off is documented so that the report reflects the actual production environment accurately.
+
+\section{Production Preflight}
+A reusable production preflight script validates the running environment before demo or grading. The script checks Kubernetes workloads, local NodePorts, public HTTPS endpoints, the admin route, Adminer, Grafana health, and Prometheus active targets.
+
+\smallfig{13-demo-preflight-success.png}{Production preflight script completed successfully}{fig:preflight}
+
+\section{Administrative and Database Operation Surfaces}
+The admin dashboard is reachable through the public application domain and uses the identity service for authenticated role-based access. Adminer is also temporarily exposed for project operations and demonstration evidence. Because Adminer provides direct database access, it should be restricted or disabled after grading if long-term public access is not required.
+
+\smallfig{15-admin-dashboard-login.png}{Production admin dashboard evidence}{fig:admin-dashboard}
+\smallfig{16-adminer-database.png}{Adminer database evidence showing movie\_booking\_db tables}{fig:adminer}
+
+\section{Self-Healing Failure Simulation}
+To demonstrate Kubernetes resilience, the team simulates a failure by deleting a live pod belonging to a production Deployment. Kubernetes automatically creates a replacement pod, and the script checks that the public application endpoint remains healthy after recovery. This demonstrates self-healing behavior appropriate to the selected architecture tier.
+
+\smallfig{14-kubernetes-failure-recovery.png}{Kubernetes failure simulation and automatic pod recovery}{fig:failure-recovery}
+
+\section{Deployment Limitations}
+The deployment intentionally focuses on a stable single-node k3s environment rather than adding unstable complexity. Two limitations are acknowledged:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Ingress}: The system uses host Nginx plus NodePort instead of a Kubernetes Ingress Controller.
+  \item \textbf{Autoscaling}: The production Deployments currently run with one replica each. Horizontal Pod Autoscaling was not implemented, but self-healing was demonstrated through pod deletion and recovery.
+\end{itemize}
+
+These limitations do not prevent the system from satisfying the main production-grade CI/CD objectives, but they should be explained during the demo and in grading discussions.
+
+\chapter{Monitoring, Observability \& Lessons Learned}
+
+\section{Monitoring Stack}
+The monitoring stack consists of Prometheus, Grafana, node-exporter, and cAdvisor. Prometheus collects metrics from itself, node-exporter, and cAdvisor. Grafana is provisioned with a dashboard named \textit{MovieBooking Final Overview}, which displays CPU usage, memory usage, observed containers, and trend panels.
+
+\smallfig{06-grafana-https-login.png}{Grafana is publicly accessible through HTTPS}{fig:grafana-login}
+\evidencefig{07-grafana-dashboard.png}{Grafana dashboard showing CPU, memory, and container metrics}{fig:grafana-dashboard}
+
+\section{Runtime Awareness}
+The dashboard is not used only as installed software; it is used as operational evidence. During the demo, Grafana should be opened to show that metrics are being collected from the live production environment. The Prometheus targets are also checked by the preflight script, which confirms that Prometheus, node-exporter, and cAdvisor are up.
+
+\section{Mandatory Demo Scenario Mapping}
+\begin{longtable}{p{0.32\textwidth} p{0.44\textwidth} p{0.16\textwidth}}
+\caption{Mapping between mandatory demo requirements and project evidence}\\
+\toprule
+\textbf{Required demo step} & \textbf{How the team demonstrates it} & \textbf{Evidence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Required demo step} & \textbf{How the team demonstrates it} & \textbf{Evidence} \\
+\midrule
+\endhead
+Make a real source code change & Modify visible frontend text, commit, and push to \texttt{main}. & Video demo \\
+CI starts automatically & Open GitHub Actions run triggered by the push. & Fig.~\ref{fig:actions-success} \\
+CI validates code & Show static analysis, Python compilation, Compose validation, k3s manifest rendering, and Trivy scan. & Fig.~\ref{fig:ci-validate} \\
+Images are versioned and pushed & Show GHCR images tagged with commit SHA. & Fig.~\ref{fig:ghcr} \\
+CD deploys automatically & Show \texttt{deploy-production} job and production verification steps. & Fig.~\ref{fig:cd-deploy} \\
+Production update is verified & Open the public HTTPS domain and confirm the visible change. & Fig.~\ref{fig:public-app} \\
+HTTPS is verified & Show browser certificate evidence. & Fig.~\ref{fig:https-cert} \\
+Monitoring is inspected & Open Grafana dashboard and explain CPU, memory, and container metrics. & Fig.~\ref{fig:grafana-dashboard} \\
+Failure is simulated & Delete a live pod through the recovery script and observe Kubernetes recovery. & Fig.~\ref{fig:failure-recovery} \\
+\bottomrule
+\end{longtable}
+
+\section{Lessons Learned}
+This project produced several important DevOps lessons:
+
+\begin{itemize}[leftmargin=*]
+  \item A higher architecture tier is only valuable when it remains stable enough to demonstrate. The team first stabilized Docker Compose and then promoted the system to k3s.
+  \item Evidence is as important as implementation. Features that are not demonstrated and documented cannot be counted during grading.
+  \item Versioned images are essential for production traceability. Tagging by commit SHA allows the team to connect source code, CI results, GHCR packages, and Kubernetes deployments.
+  \item Security gates should be automatic. Trivy scans in CI prevent vulnerable images from being silently promoted.
+  \item Monitoring must reflect the real production system. Grafana and Prometheus were validated against the deployed k3s workload rather than a local environment.
+  \item Operational surfaces such as Adminer are useful for demo and troubleshooting, but they should be restricted after grading because they increase the public attack surface.
+\end{itemize}
+
+\section{Conclusion}
+The CineWorld Movie Booking System was transformed into a production-style CI/CD system that meets the major requirements of the final exam specification. The final system runs on AWS, is accessible through HTTPS, uses GitHub Actions for CI/CD, publishes versioned container images to GHCR, deploys to k3s Kubernetes, collects production metrics with Prometheus and Grafana, and demonstrates Kubernetes self-healing through failure simulation. The evidence embedded in this report and the planned video demonstration provide a complete source-to-production story aligned with the official rubric.
+
+\end{document}
