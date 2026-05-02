@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 import datetime
 
-# 1. Bảng Đơn hàng
+
 class Booking(Base):
     __tablename__ = "bookings"
     
@@ -15,11 +15,10 @@ class Booking(Base):
     status = Column(String(50), default="PENDING")
     payment_status = Column(String(50), default="UNPAID")
     
-    # Quan hệ
     tickets = relationship("Ticket", back_populates="booking", cascade="all, delete-orphan")
     concessions = relationship("BookingConcession", back_populates="booking", cascade="all, delete-orphan")
 
-# 2. Bảng Vé
+
 class Ticket(Base):
     __tablename__ = "tickets"
     
@@ -32,7 +31,7 @@ class Ticket(Base):
     
     booking = relationship("Booking", back_populates="tickets")
 
-# 3. Bảng Bắp nước 
+
 class BookingConcession(Base):
     __tablename__ = "booking_concessions"
     

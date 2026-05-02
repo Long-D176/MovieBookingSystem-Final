@@ -40,7 +40,6 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
     except:
         raise HTTPException(status_code=401, detail="Invalid Token")
 
-# --- Schemas ---
 class ConcessionItemRequest(BaseModel):
     item_id: int
     quantity: int
@@ -50,7 +49,7 @@ class BookingRequest(BaseModel):
     seat_ids: List[int]
     concessions: List[ConcessionItemRequest] = [] 
 
-# --- API ---
+
 
 @app.get("/bookings/mine")
 def get_my_bookings(user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -97,7 +96,6 @@ def create_booking(req: BookingRequest,
                    user_id: int = Depends(get_current_user_id), 
                    db: Session = Depends(get_db)):
     
-    # 1. Kiểm tra ghế đã đặt chưa
     existing_ticket = db.query(models.Ticket).join(models.Booking).filter(
         models.Booking.showtime_id == req.showtime_id,
         models.Ticket.seat_id.in_(req.seat_ids),
@@ -115,9 +113,6 @@ def create_booking(req: BookingRequest,
         else:
             raise HTTPException(status_code=400, detail=f"Ghế {existing_ticket.seat_id} đã có người đặt!")
 
-    # ==================================================================
-    # LOGIC TÍNH TIỀN TỪ CATALOG
-    # ==================================================================
     BASE_PRICE = 50000.0
     
     try:
@@ -137,7 +132,6 @@ def create_booking(req: BookingRequest,
         print(f"Error fetching catalog data: {e}")
         raise HTTPException(status_code=500, detail="Lỗi hệ thống: Không thể lấy dữ liệu giá vé.")
 
-    # 2. Tính tiền ghế
     seat_total = 0.0
     tickets_to_create = []
 
@@ -149,7 +143,6 @@ def create_booking(req: BookingRequest,
         
         tickets_to_create.append({"seat_id": seat_id, "price": real_price})
 
-    # 3. Tính tiền bắp nước
     concession_total = 0.0
     concessions_to_create = []
 
@@ -166,7 +159,6 @@ def create_booking(req: BookingRequest,
 
     final_total = seat_total + concession_total
 
-    # 4. Tạo Booking mới
     new_booking = models.Booking(
         user_id=user_id,
         showtime_id=req.showtime_id,
@@ -178,7 +170,6 @@ def create_booking(req: BookingRequest,
     db.commit()
     db.refresh(new_booking)
 
-    # 5. Lưu vé chi tiết và TẠO MÃ QR UUID
     for t_data in tickets_to_create:
         generated_qr = str(uuid.uuid4()) 
 
@@ -191,7 +182,6 @@ def create_booking(req: BookingRequest,
         )
         db.add(ticket)
 
-    # 6. Lưu bắp nước
     for c_data in concessions_to_create:
         conc = models.BookingConcession(
             booking_id=new_booking.booking_id,
