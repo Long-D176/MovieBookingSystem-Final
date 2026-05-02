@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Catalog Service")
 
-# Cấu hình CORS
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

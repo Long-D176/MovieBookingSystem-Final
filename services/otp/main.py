@@ -13,7 +13,7 @@ from email.mime.multipart import MIMEMultipart
 
 app = FastAPI(title="OTP Service")
 
-# Cấu hình CORS
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,7 +53,7 @@ def send_email_via_smtp(to_email: str, subject: str, html_body: str):
         print(f"Failed to send email: {e}")
         return False
 
-# --- SCHEMAS ---
+
 class OTPRequest(BaseModel):
     identifier: str
 
@@ -61,7 +61,7 @@ class OTPValidate(BaseModel):
     identifier: str
     otp_code: str
 
-# --- API ENDPOINTS ---
+
 
 @app.post("/generate")
 def generate_otp(req: OTPRequest, db: Session = Depends(get_db)):
