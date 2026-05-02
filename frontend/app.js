@@ -1,6 +1,4 @@
-// ============================================================
-// 1. CẤU HÌNH API & GLOBAL
-// ============================================================
+
 const API = {
     CATALOG: "/api/catalog",
     IDENTITY: "/api/identity",
@@ -38,9 +36,7 @@ if (token && isTokenExpired(token)) {
     logout();
 }
 
-// ============================================================
-// 2. AUTHENTICATION
-// ============================================================
+
 
 if (token && document.getElementById("user-info")) {
     document.getElementById("user-info").innerHTML = `
@@ -199,9 +195,7 @@ async function confirmReset() {
     } catch (e) { alert("Lỗi kết nối"); }
 }
 
-// ============================================================
-// 3. HOMEPAGE LOGIC
-// ============================================================
+
 
 let currentTabStatus = 'NOW_SHOWING';
 
@@ -289,9 +283,7 @@ async function loadHero() {
     } catch(e) {}
 }
 
-// ============================================================
-// 4. BOOKING LOGIC
-// ============================================================
+
 
 let selectedSeats = [];
 let cartConcessions = {}; 
@@ -550,9 +542,7 @@ async function bookAndPay() {
     } catch (e) { alert("Lỗi đặt vé: " + e.message); }
 }
 
-// ============================================================
-// 5. PAYMENT PAGE LOGIC
-// ============================================================
+
 
 let currentBookingId = null;
 let currentAmount = 0; 
@@ -622,9 +612,7 @@ async function processPaymentFinal() {
     } catch(e) { alert("Lỗi kết nối thanh toán"); }
 }
 
-// ============================================================
-// 6. HISTORY LOGIC
-// ============================================================
+
 
 if (document.getElementById("history-container")) {
     loadBookingHistory();
